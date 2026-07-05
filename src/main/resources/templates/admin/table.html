@@ -22,10 +22,84 @@
                 <a class="button secondary" th:if="${pageKey == 'students'}" href="/admin/students/import">一键导入</a>
                 <a class="button" th:if="${pageKey == 'teachers'}" href="/admin/teachers/add">新增教师</a>
                 <a class="button" th:if="${pageKey == 'courses'}" href="/admin/courses/add">新增课程</a>
+                <a class="button" th:if="${pageKey == 'majors'}" href="/admin/majors/add">新增专业</a>
+                <a class="button" th:if="${pageKey == 'classes'}" href="/admin/classes/add">新增班级</a>
                 <a class="button" th:if="${pageKey == 'tasks'}" href="/admin/tasks/add">新增教学任务</a>
             </div>
         </section>
-        <div th:replace="~{fragments/layout :: table(${rows})}"></div>
+
+        <section class="panel filter-panel" th:if="${pageKey == 'students' || pageKey == 'teachers' || pageKey == 'courses' || pageKey == 'majors' || pageKey == 'classes' || pageKey == 'tasks'}">
+            <form method="get" class="filter-form">
+                <label th:if="${pageKey == 'students' || pageKey == 'teachers' || pageKey == 'courses' || pageKey == 'majors' || pageKey == 'classes'}">
+                    关键词
+                    <input name="keyword" th:value="${filters['keyword']}" th:placeholder="${pageKey == 'students'} ? '学号或姓名' : '输入名称查询'">
+                </label>
+                <label th:if="${pageKey == 'students' || pageKey == 'classes' || pageKey == 'tasks'}">
+                    班级
+                    <select name="classKey">
+                        <option value="">全部班级</option>
+                        <option th:each="o : ${options.classes}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['classId']}"></option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'students'}">
+                    生源地
+                    <select name="regionKey">
+                        <option value="">全部地区</option>
+                        <option th:each="o : ${options.regions}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['regionId']}"></option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'teachers'}">
+                    职称
+                    <select name="title">
+                        <option value="">全部职称</option>
+                        <option value="助教" th:selected="${filters['title'] == '助教'}">助教</option>
+                        <option value="讲师" th:selected="${filters['title'] == '讲师'}">讲师</option>
+                        <option value="副教授" th:selected="${filters['title'] == '副教授'}">副教授</option>
+                        <option value="教授" th:selected="${filters['title'] == '教授'}">教授</option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'teachers'}">
+                    管理员权限
+                    <select name="adminFlag">
+                        <option value="">全部</option>
+                        <option value="Y" th:selected="${filters['adminFlag'] == 'Y'}">是</option>
+                        <option value="N" th:selected="${filters['adminFlag'] == 'N'}">否</option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'courses'}">
+                    考核方式
+                    <select name="examType">
+                        <option value="">全部方式</option>
+                        <option value="考试" th:selected="${filters['examType'] == '考试'}">考试</option>
+                        <option value="考查" th:selected="${filters['examType'] == '考查'}">考查</option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'classes'}">
+                    专业
+                    <select name="majorKey">
+                        <option value="">全部专业</option>
+                        <option th:each="o : ${options.majors}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['majorId']}"></option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'tasks'}">
+                    教师
+                    <select name="teacherKey">
+                        <option value="">全部教师</option>
+                        <option th:each="o : ${options.teachers}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['teacherId']}"></option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'tasks'}">
+                    课程
+                    <select name="courseKey">
+                        <option value="">全部课程</option>
+                        <option th:each="o : ${options.courses}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['courseId']}"></option>
+                    </select>
+                </label>
+                <button type="submit">查询</button>
+                <a class="button secondary" th:href="@{'/admin/' + ${pageKey}}">重置</a>
+            </form>
+        </section>
+        <div th:replace="~{fragments/layout :: table(${rows}, ${columns})}"></div>
     </main>
 </div>
 </body>

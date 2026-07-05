@@ -3,6 +3,7 @@ package com.huangxx.mis.repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,60 +28,145 @@ public class AdminRepository {
         return data;
     }
 
-    public List<Map<String, Object>> students() {
-        return jdbcTemplate.queryForList("""
-                SELECT s.hxx_student_id11 AS 学号, s.hxx_student_name11 AS 姓名, s.hxx_gender11 AS 性别,
+    public List<Map<String, Object>> students(Map<String, String> filters) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT s.hxx_student_id11 AS rowId,
+                       '/admin/students/edit/' || s.hxx_student_id11 AS editPath,
+                       '/admin/students/delete/' || s.hxx_student_id11 AS deletePath,
+                       s.hxx_student_id11 AS 学号, s.hxx_student_name11 AS 姓名, s.hxx_gender11 AS 性别,
                        cls.hxx_class_name11 AS 班级, r.hxx_region_name11 AS 生源地,
                        s.hxx_total_credit11 AS 已修学分, s.hxx_gpa11 AS GPA, s.hxx_status11 AS 学籍状态
                   FROM Huangxx_Student11 s
                   JOIN Huangxx_Class11 cls ON cls.hxx_class_id11 = s.hxx_class_id11
                   JOIN Huangxx_Region11 r ON r.hxx_region_id11 = s.hxx_region_id11
-                 ORDER BY s.hxx_student_id11
+                 WHERE 1 = 1
                 """);
+        ArrayList<Object> args = new ArrayList<>();
+        if (!isBlank(filters.get("keyword"))) {
+            sql.append(" AND (s.hxx_student_id11 LIKE ? OR s.hxx_student_name11 LIKE ?)");
+            args.add(like(filters.get("keyword")));
+            args.add(like(filters.get("keyword")));
+        }
+        if (!isBlank(filters.get("classId"))) {
+            sql.append(" AND s.hxx_class_id11 = ?");
+            args.add(filters.get("classId"));
+        }
+        if (!isBlank(filters.get("regionId"))) {
+            sql.append(" AND s.hxx_region_id11 = ?");
+            args.add(filters.get("regionId"));
+        }
+        sql.append(" ORDER BY s.hxx_student_id11");
+        return jdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
-    public List<Map<String, Object>> teachers() {
-        return jdbcTemplate.queryForList("""
-                SELECT hxx_teacher_name11 AS 姓名, hxx_gender11 AS 性别,
-                       hxx_title11 AS 职称, hxx_phone11 AS 联系电话, hxx_college_name11 AS 所属学院,
-                       hxx_status11 AS 状态
-                  FROM Huangxx_Teacher11
-                 ORDER BY hxx_teacher_id11
+    public List<Map<String, Object>> teachers(Map<String, String> filters) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT tea.hxx_teacher_id11 AS rowId,
+                       '/admin/teachers/edit/' || tea.hxx_teacher_id11 AS editPath,
+                       '/admin/teachers/delete/' || tea.hxx_teacher_id11 AS deletePath,
+                       tea.hxx_teacher_name11 AS 姓名, tea.hxx_gender11 AS 性别,
+                       tea.hxx_title11 AS 职称, tea.hxx_phone11 AS 联系电话, tea.hxx_college_name11 AS 所属学院,
+                       CASE WHEN admin_user.hxx_user_id11 IS NULL THEN '否' ELSE '是' END AS 管理员权限,
+                       tea.hxx_status11 AS 状态
+                  FROM Huangxx_Teacher11 tea
+                  LEFT JOIN Huangxx_SystemUser11 admin_user
+                    ON admin_user.hxx_ref_id11 = tea.hxx_teacher_id11
+                   AND admin_user.hxx_role11 = '管理员'
+                 WHERE 1 = 1
                 """);
+        ArrayList<Object> args = new ArrayList<>();
+        if (!isBlank(filters.get("keyword"))) {
+            sql.append(" AND tea.hxx_teacher_name11 LIKE ?");
+            args.add(like(filters.get("keyword")));
+        }
+        if (!isBlank(filters.get("title"))) {
+            sql.append(" AND tea.hxx_title11 = ?");
+            args.add(filters.get("title"));
+        }
+        if (!isBlank(filters.get("adminFlag"))) {
+            if ("Y".equals(filters.get("adminFlag"))) {
+                sql.append(" AND admin_user.hxx_user_id11 IS NOT NULL");
+            } else if ("N".equals(filters.get("adminFlag"))) {
+                sql.append(" AND admin_user.hxx_user_id11 IS NULL");
+            }
+        }
+        sql.append(" ORDER BY tea.hxx_teacher_id11");
+        return jdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
-    public List<Map<String, Object>> courses() {
-        return jdbcTemplate.queryForList("""
-                SELECT hxx_course_name11 AS 课程名称, hxx_credit11 AS 学分,
+    public List<Map<String, Object>> courses(Map<String, String> filters) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT hxx_course_id11 AS rowId,
+                       '/admin/courses/edit/' || hxx_course_id11 AS editPath,
+                       '/admin/courses/delete/' || hxx_course_id11 AS deletePath,
+                       hxx_course_name11 AS 课程名称, hxx_credit11 AS 学分,
                        hxx_period11 AS 学时, hxx_exam_type11 AS 考核方式, hxx_course_type11 AS 课程类型
                   FROM Huangxx_Course11
-                 ORDER BY hxx_course_id11
+                 WHERE 1 = 1
                 """);
+        ArrayList<Object> args = new ArrayList<>();
+        if (!isBlank(filters.get("keyword"))) {
+            sql.append(" AND hxx_course_name11 LIKE ?");
+            args.add(like(filters.get("keyword")));
+        }
+        if (!isBlank(filters.get("examType"))) {
+            sql.append(" AND hxx_exam_type11 = ?");
+            args.add(filters.get("examType"));
+        }
+        sql.append(" ORDER BY hxx_course_id11");
+        return jdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
-    public List<Map<String, Object>> majors() {
-        return jdbcTemplate.queryForList("""
-                SELECT hxx_major_name11 AS 专业名称,
+    public List<Map<String, Object>> majors(Map<String, String> filters) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT hxx_major_id11 AS rowId,
+                       '/admin/majors/edit/' || hxx_major_id11 AS editPath,
+                       '/admin/majors/delete/' || hxx_major_id11 AS deletePath,
+                       hxx_major_name11 AS 专业名称,
                        hxx_college_name11 AS 所属学院, hxx_major_desc11 AS 专业说明
                   FROM Huangxx_Major11
-                 ORDER BY hxx_major_id11
+                 WHERE 1 = 1
                 """);
+        ArrayList<Object> args = new ArrayList<>();
+        if (!isBlank(filters.get("keyword"))) {
+            sql.append(" AND hxx_major_name11 LIKE ?");
+            args.add(like(filters.get("keyword")));
+        }
+        sql.append(" ORDER BY hxx_major_id11");
+        return jdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
-    public List<Map<String, Object>> classes() {
-        return jdbcTemplate.queryForList("""
-                SELECT cls.hxx_class_name11 AS 班级名称,
+    public List<Map<String, Object>> classes(Map<String, String> filters) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT cls.hxx_class_id11 AS rowId,
+                       '/admin/classes/edit/' || cls.hxx_class_id11 AS editPath,
+                       '/admin/classes/delete/' || cls.hxx_class_id11 AS deletePath,
+                       cls.hxx_class_name11 AS 班级名称,
                        major.hxx_major_name11 AS 专业, cls.hxx_grade_year11 AS 入学年份,
                        cls.hxx_class_size11 AS 班级人数
                   FROM Huangxx_Class11 cls
                   JOIN Huangxx_Major11 major ON major.hxx_major_id11 = cls.hxx_major_id11
-                 ORDER BY cls.hxx_class_id11
+                 WHERE 1 = 1
                 """);
+        ArrayList<Object> args = new ArrayList<>();
+        if (!isBlank(filters.get("keyword"))) {
+            sql.append(" AND cls.hxx_class_name11 LIKE ?");
+            args.add(like(filters.get("keyword")));
+        }
+        if (!isBlank(filters.get("majorId"))) {
+            sql.append(" AND cls.hxx_major_id11 = ?");
+            args.add(filters.get("majorId"));
+        }
+        sql.append(" ORDER BY cls.hxx_class_id11");
+        return jdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
-    public List<Map<String, Object>> tasks() {
-        return jdbcTemplate.queryForList("""
-                SELECT c.hxx_course_name11 AS 课程名称,
+    public List<Map<String, Object>> tasks(Map<String, String> filters) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT task.hxx_task_id11 AS rowId,
+                       '/admin/tasks/edit/' || task.hxx_task_id11 AS editPath,
+                       '/admin/tasks/delete/' || task.hxx_task_id11 AS deletePath,
+                       c.hxx_course_name11 AS 课程名称,
                        tea.hxx_teacher_name11 AS 任课教师, cls.hxx_class_name11 AS 班级,
                        term.hxx_school_year11 || ' ' || term.hxx_semester11 AS 学期,
                        task.hxx_teaching_place11 AS 上课地点, task.hxx_max_count11 AS 最大人数,
@@ -91,8 +177,27 @@ public class AdminRepository {
                   JOIN Huangxx_Teacher11 tea ON tea.hxx_teacher_id11 = task.hxx_teacher_id11
                   JOIN Huangxx_Class11 cls ON cls.hxx_class_id11 = task.hxx_class_id11
                   JOIN Huangxx_Term11 term ON term.hxx_term_id11 = task.hxx_term_id11
-                 ORDER BY task.hxx_task_id11
+                 WHERE 1 = 1
                 """);
+        ArrayList<Object> args = new ArrayList<>();
+        if (!isBlank(filters.get("teacherId"))) {
+            sql.append(" AND task.hxx_teacher_id11 = ?");
+            args.add(filters.get("teacherId"));
+        }
+        if (!isBlank(filters.get("courseId"))) {
+            sql.append(" AND task.hxx_course_id11 = ?");
+            args.add(Integer.parseInt(filters.get("courseId")));
+        }
+        if (!isBlank(filters.get("classId"))) {
+            sql.append(" AND task.hxx_class_id11 = ?");
+            args.add(filters.get("classId"));
+        }
+        if (!isBlank(filters.get("termId"))) {
+            sql.append(" AND task.hxx_term_id11 = ?");
+            args.add(filters.get("termId"));
+        }
+        sql.append(" ORDER BY task.hxx_task_id11");
+        return jdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
     public List<Map<String, Object>> courseStats() {
@@ -310,11 +415,25 @@ public class AdminRepository {
     }
 
     public Map<String, Object> teacher(String id) {
-        return jdbcTemplate.queryForMap("SELECT * FROM Huangxx_Teacher11 WHERE hxx_teacher_id11 = ?", id);
+        Map<String, Object> row = new LinkedHashMap<>(jdbcTemplate.queryForMap("SELECT * FROM Huangxx_Teacher11 WHERE hxx_teacher_id11 = ?", id));
+        row.put("adminFlag", countWhere("Huangxx_SystemUser11", "hxx_ref_id11", id) > 0
+                && jdbcTemplate.queryForObject("""
+                    SELECT count(*) FROM Huangxx_SystemUser11
+                     WHERE hxx_ref_id11 = ? AND hxx_role11 = '管理员'
+                    """, Integer.class, id) > 0 ? "Y" : "N");
+        return row;
     }
 
     public Map<String, Object> course(String id) {
-        return jdbcTemplate.queryForMap("SELECT * FROM Huangxx_Course11 WHERE hxx_course_id11 = ?", id);
+        return jdbcTemplate.queryForMap("SELECT * FROM Huangxx_Course11 WHERE hxx_course_id11 = ?", Integer.parseInt(id));
+    }
+
+    public Map<String, Object> major(String id) {
+        return jdbcTemplate.queryForMap("SELECT * FROM Huangxx_Major11 WHERE hxx_major_id11 = ?", id);
+    }
+
+    public Map<String, Object> classInfo(String id) {
+        return jdbcTemplate.queryForMap("SELECT * FROM Huangxx_Class11 WHERE hxx_class_id11 = ?", id);
     }
 
     public Map<String, Object> task(String id) {
@@ -325,11 +444,13 @@ public class AdminRepository {
         jdbcTemplate.update("""
                 INSERT INTO Huangxx_Student11
                 (hxx_student_id11, hxx_student_name11, hxx_gender11, hxx_age11, hxx_region_id11,
-                 hxx_class_id11, hxx_phone11, hxx_status11, hxx_enroll_date11)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, to_date(?, 'YYYY-MM-DD'))
+                 hxx_class_id11, hxx_total_credit11, hxx_gpa11, hxx_phone11, hxx_status11, hxx_enroll_date11)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, to_date(?, 'YYYY-MM-DD'))
                 """,
                 form.get("studentId"), form.get("studentName"), form.get("gender"), Integer.parseInt(form.get("age")),
-                form.get("regionId"), form.get("classId"), form.get("phone"), form.get("status"), form.get("enrollDate"));
+                form.get("regionId"), form.get("classId"), decimal(defaultValue(form.get("totalCredit"), "0")),
+                decimal(defaultValue(form.get("gpa"), "0")), blankToNull(form.get("phone")), form.get("status"), form.get("enrollDate"));
+        upsertStudentUser(form.get("studentId"), form.get("password"));
     }
 
     public int importStudents(List<Map<String, String>> rows) {
@@ -345,15 +466,19 @@ public class AdminRepository {
         jdbcTemplate.update("""
                 UPDATE Huangxx_Student11
                    SET hxx_student_name11 = ?, hxx_gender11 = ?, hxx_age11 = ?, hxx_region_id11 = ?,
-                       hxx_class_id11 = ?, hxx_phone11 = ?, hxx_status11 = ?, hxx_enroll_date11 = to_date(?, 'YYYY-MM-DD')
+                       hxx_class_id11 = ?, hxx_total_credit11 = ?, hxx_gpa11 = ?,
+                       hxx_phone11 = ?, hxx_status11 = ?, hxx_enroll_date11 = to_date(?, 'YYYY-MM-DD')
                  WHERE hxx_student_id11 = ?
                 """,
                 form.get("studentName"), form.get("gender"), Integer.parseInt(form.get("age")),
-                form.get("regionId"), form.get("classId"), form.get("phone"), form.get("status"),
+                form.get("regionId"), form.get("classId"), decimal(defaultValue(form.get("totalCredit"), "0")),
+                decimal(defaultValue(form.get("gpa"), "0")), blankToNull(form.get("phone")), form.get("status"),
                 form.get("enrollDate"), form.get("studentId"));
+        upsertStudentUser(form.get("studentId"), form.get("password"));
     }
 
     public void deleteStudent(String id) {
+        jdbcTemplate.update("DELETE FROM Huangxx_SystemUser11 WHERE hxx_ref_id11 = ? AND hxx_role11 = '学生'", id);
         jdbcTemplate.update("DELETE FROM Huangxx_Student11 WHERE hxx_student_id11 = ?", id);
     }
 
@@ -365,7 +490,8 @@ public class AdminRepository {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 form.get("teacherId"), form.get("teacherName"), form.get("gender"), Integer.parseInt(form.get("age")),
-                form.get("title"), form.get("phone"), form.get("collegeName"), form.get("status"));
+                form.get("title"), blankToNull(form.get("phone")), form.get("collegeName"), form.get("status"));
+        upsertTeacherUser(form.get("teacherId"), form.get("password"), "Y".equals(form.get("adminFlag")));
     }
 
     public void updateTeacher(Map<String, String> form) {
@@ -376,21 +502,23 @@ public class AdminRepository {
                  WHERE hxx_teacher_id11 = ?
                 """,
                 form.get("teacherName"), form.get("gender"), Integer.parseInt(form.get("age")), form.get("title"),
-                form.get("phone"), form.get("collegeName"), form.get("status"), form.get("teacherId"));
+                blankToNull(form.get("phone")), form.get("collegeName"), form.get("status"), form.get("teacherId"));
+        upsertTeacherUser(form.get("teacherId"), form.get("password"), "Y".equals(form.get("adminFlag")));
     }
 
     public void deleteTeacher(String id) {
+        jdbcTemplate.update("DELETE FROM Huangxx_SystemUser11 WHERE hxx_ref_id11 = ? AND hxx_role11 IN ('教师', '管理员')", id);
         jdbcTemplate.update("DELETE FROM Huangxx_Teacher11 WHERE hxx_teacher_id11 = ?", id);
     }
 
     public void saveCourse(Map<String, String> form) {
         jdbcTemplate.update("""
                 INSERT INTO Huangxx_Course11
-                (hxx_course_id11, hxx_course_name11, hxx_credit11, hxx_period11,
+                (hxx_course_name11, hxx_credit11, hxx_period11,
                  hxx_exam_type11, hxx_course_type11, hxx_course_desc11)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                form.get("courseId"), form.get("courseName"), decimal(form.get("credit")), Integer.parseInt(form.get("period")),
+                form.get("courseName"), decimal(form.get("credit")), Integer.parseInt(form.get("period")),
                 form.get("examType"), form.get("courseType"), form.get("courseDesc"));
     }
 
@@ -402,11 +530,59 @@ public class AdminRepository {
                  WHERE hxx_course_id11 = ?
                 """,
                 form.get("courseName"), decimal(form.get("credit")), Integer.parseInt(form.get("period")),
-                form.get("examType"), form.get("courseType"), form.get("courseDesc"), form.get("courseId"));
+                form.get("examType"), form.get("courseType"), form.get("courseDesc"), Integer.parseInt(form.get("courseId")));
     }
 
     public void deleteCourse(String id) {
-        jdbcTemplate.update("DELETE FROM Huangxx_Course11 WHERE hxx_course_id11 = ?", id);
+        jdbcTemplate.update("DELETE FROM Huangxx_Course11 WHERE hxx_course_id11 = ?", Integer.parseInt(id));
+    }
+
+    public void saveMajor(Map<String, String> form) {
+        jdbcTemplate.update("""
+                INSERT INTO Huangxx_Major11
+                (hxx_major_id11, hxx_major_name11, hxx_college_name11, hxx_major_desc11)
+                VALUES (?, ?, ?, ?)
+                """, form.get("majorId"), form.get("majorName"), defaultValue(form.get("collegeName"), "计算机学院"), blankToNull(form.get("majorDesc")));
+    }
+
+    public void updateMajor(Map<String, String> form) {
+        jdbcTemplate.update("""
+                UPDATE Huangxx_Major11
+                   SET hxx_major_name11 = ?,
+                       hxx_college_name11 = ?,
+                       hxx_major_desc11 = ?
+                 WHERE hxx_major_id11 = ?
+                """, form.get("majorName"), defaultValue(form.get("collegeName"), "计算机学院"), blankToNull(form.get("majorDesc")), form.get("majorId"));
+    }
+
+    public void deleteMajor(String id) {
+        jdbcTemplate.update("DELETE FROM Huangxx_Major11 WHERE hxx_major_id11 = ?", id);
+    }
+
+    public void saveClass(Map<String, String> form) {
+        jdbcTemplate.update("""
+                INSERT INTO Huangxx_Class11
+                (hxx_class_id11, hxx_class_name11, hxx_major_id11, hxx_grade_year11, hxx_class_size11, hxx_remark11)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, form.get("classId"), form.get("className"), form.get("majorId"),
+                Integer.parseInt(form.get("gradeYear")), Integer.parseInt(defaultValue(form.get("classSize"), "0")), blankToNull(form.get("remark")));
+    }
+
+    public void updateClass(Map<String, String> form) {
+        jdbcTemplate.update("""
+                UPDATE Huangxx_Class11
+                   SET hxx_class_name11 = ?,
+                       hxx_major_id11 = ?,
+                       hxx_grade_year11 = ?,
+                       hxx_class_size11 = ?,
+                       hxx_remark11 = ?
+                 WHERE hxx_class_id11 = ?
+                """, form.get("className"), form.get("majorId"), Integer.parseInt(form.get("gradeYear")),
+                Integer.parseInt(defaultValue(form.get("classSize"), "0")), blankToNull(form.get("remark")), form.get("classId"));
+    }
+
+    public void deleteClass(String id) {
+        jdbcTemplate.update("DELETE FROM Huangxx_Class11 WHERE hxx_class_id11 = ?", id);
     }
 
     public void saveTask(Map<String, String> form) {
@@ -416,7 +592,7 @@ public class AdminRepository {
                  hxx_term_id11, hxx_teaching_place11, hxx_max_count11, hxx_task_status11)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                form.get("taskId"), form.get("courseId"), form.get("teacherId"), form.get("classId"),
+                form.get("taskId"), Integer.parseInt(form.get("courseId")), form.get("teacherId"), form.get("classId"),
                 form.get("termId"), form.get("teachingPlace"), Integer.parseInt(form.get("maxCount")), form.get("taskStatus"));
     }
 
@@ -427,8 +603,47 @@ public class AdminRepository {
                        hxx_teaching_place11 = ?, hxx_max_count11 = ?, hxx_task_status11 = ?
                  WHERE hxx_task_id11 = ?
                 """,
-                form.get("courseId"), form.get("teacherId"), form.get("classId"), form.get("termId"),
+                Integer.parseInt(form.get("courseId")), form.get("teacherId"), form.get("classId"), form.get("termId"),
                 form.get("teachingPlace"), Integer.parseInt(form.get("maxCount")), form.get("taskStatus"), form.get("taskId"));
+    }
+
+    public void deleteTask(String id) {
+        jdbcTemplate.update("DELETE FROM Huangxx_TeachingTask11 WHERE hxx_task_id11 = ?", id);
+    }
+
+    public int countWhere(String table, String column, String value) {
+        Integer count = jdbcTemplate.queryForObject("SELECT count(*) FROM " + table + " WHERE CAST(" + column + " AS varchar) = ?", Integer.class, value);
+        return count == null ? 0 : count;
+    }
+
+    public int countMajorName(String name, String exceptId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM Huangxx_Major11
+                 WHERE hxx_major_name11 = ?
+                   AND (? IS NULL OR hxx_major_id11 <> ?)
+                """, Integer.class, name, exceptId, exceptId);
+        return count == null ? 0 : count;
+    }
+
+    public int countTaskDuplicate(Map<String, String> form, boolean edit) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT count(*) FROM Huangxx_TeachingTask11
+                 WHERE hxx_course_id11 = ?
+                   AND hxx_teacher_id11 = ?
+                   AND hxx_class_id11 = ?
+                   AND hxx_term_id11 = ?
+                """);
+        ArrayList<Object> args = new ArrayList<>();
+        args.add(Integer.parseInt(form.get("courseId")));
+        args.add(form.get("teacherId"));
+        args.add(form.get("classId"));
+        args.add(form.get("termId"));
+        if (edit) {
+            sql.append(" AND hxx_task_id11 <> ?");
+            args.add(form.get("taskId"));
+        }
+        Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class, args.toArray());
+        return count == null ? 0 : count;
     }
 
     public List<Map<String, Object>> options(String table, String idColumn, String nameColumn) {
@@ -442,5 +657,47 @@ public class AdminRepository {
 
     private java.math.BigDecimal decimal(String value) {
         return new java.math.BigDecimal(value);
+    }
+
+    private void upsertStudentUser(String studentId, String password) {
+        jdbcTemplate.update("""
+                INSERT INTO Huangxx_SystemUser11
+                (hxx_user_id11, hxx_login_name11, hxx_password11, hxx_role11, hxx_ref_id11, hxx_user_status11)
+                SELECT 'U-' || ?, lower(?), ?, '学生', ?, '正常'
+                 WHERE NOT EXISTS (SELECT 1 FROM Huangxx_SystemUser11 WHERE hxx_ref_id11 = ? AND hxx_role11 = '学生')
+                """, studentId, studentId, defaultValue(password, "123456"), studentId, studentId);
+        if (!isBlank(password)) {
+            jdbcTemplate.update("UPDATE Huangxx_SystemUser11 SET hxx_password11 = ? WHERE hxx_ref_id11 = ? AND hxx_role11 = '学生'", password, studentId);
+        }
+    }
+
+    private void upsertTeacherUser(String teacherId, String password, boolean adminFlag) {
+        String role = adminFlag ? "管理员" : "教师";
+        jdbcTemplate.update("""
+                INSERT INTO Huangxx_SystemUser11
+                (hxx_user_id11, hxx_login_name11, hxx_password11, hxx_role11, hxx_ref_id11, hxx_user_status11)
+                SELECT 'U-' || ?, lower(?), ?, ?, ?, '正常'
+                 WHERE NOT EXISTS (SELECT 1 FROM Huangxx_SystemUser11 WHERE hxx_ref_id11 = ? AND hxx_role11 IN ('教师', '管理员'))
+                """, teacherId, teacherId, defaultValue(password, "123456"), role, teacherId, teacherId);
+        jdbcTemplate.update("UPDATE Huangxx_SystemUser11 SET hxx_role11 = ? WHERE hxx_ref_id11 = ? AND hxx_role11 IN ('教师', '管理员')", role, teacherId);
+        if (!isBlank(password)) {
+            jdbcTemplate.update("UPDATE Huangxx_SystemUser11 SET hxx_password11 = ? WHERE hxx_ref_id11 = ? AND hxx_role11 IN ('教师', '管理员')", password, teacherId);
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private String like(String value) {
+        return "%" + value.trim() + "%";
+    }
+
+    private String defaultValue(String value, String fallback) {
+        return isBlank(value) ? fallback : value.trim();
+    }
+
+    private String blankToNull(String value) {
+        return isBlank(value) ? null : value.trim();
     }
 }

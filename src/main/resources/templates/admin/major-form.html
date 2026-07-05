@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title th:text="${title}">专业表单</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-title">
+    <p class="eyebrow">Major Settings</p>
+    <h1 th:text="${title}">专业表单</h1>
+    <p>维护学院下设专业信息，供班级和学生学籍归属使用。</p>
+</section>
+<form class="form-card" method="post" th:action="${edit} ? '/admin/majors/edit' : '/admin/majors/add'">
+    <section class="form-section">
+        <h2>专业信息</h2>
+        <div class="form-grid">
+            <label class="required">专业编号<input name="majorId" required th:readonly="${edit}" th:value="${row['hxx_major_id11']}" placeholder="如 M-AI"></label>
+            <label class="required">专业名称<input name="majorName" required th:value="${row['hxx_major_name11']}" placeholder="如 人工智能"></label>
+            <label class="required">所属学院<input name="collegeName" required th:value="${row['hxx_college_name11'] ?: '计算机学院'}" placeholder="请输入所属学院"></label>
+            <label class="wide">专业说明<input name="majorDesc" th:value="${row['hxx_major_desc11']}" placeholder="请输入专业说明"></label>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button type="submit">保存</button>
+        <a class="button secondary" href="/admin/majors">返回</a>
+    </div>
+</form>
+</main></div>
+</body>
+</html>

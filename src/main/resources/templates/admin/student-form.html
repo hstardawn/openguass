@@ -6,18 +6,44 @@
 <div class="shell">
 <div th:replace="~{fragments/layout :: sidebar}"></div>
 <main class="content">
-<h1 th:text="${title}">学生表单</h1>
-<form class="form-grid" method="post" th:action="${edit} ? '/admin/students/edit' : '/admin/students/add'">
-    <label>学号<input name="studentId" required th:readonly="${edit}" th:value="${row['hxx_student_id11']}"></label>
-    <label>姓名<input name="studentName" required th:value="${row['hxx_student_name11']}"></label>
-    <label>性别<select name="gender"><option>男</option><option>女</option></select></label>
-    <label>年龄<input name="age" type="number" required th:value="${row['hxx_age11'] ?: 20}"></label>
-    <label>生源地<select name="regionId"><option th:each="o:${options.regions}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
-    <label>班级<select name="classId"><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
-    <label>电话<input name="phone" th:value="${row['hxx_phone11']}"></label>
-    <label>状态<select name="status"><option>在读</option><option>休学</option><option>毕业</option><option>退学</option></select></label>
-    <label>入学日期<input name="enrollDate" type="date" th:value="${row['hxx_enroll_date11'] ?: '2023-09-01'}"></label>
-    <button type="submit">保存</button>
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-title">
+    <p class="eyebrow">Student Profile</p>
+    <h1 th:text="${title}">学生表单</h1>
+    <p>维护学生基本信息、学籍状态、生源地和系统登录账号。</p>
+</section>
+<form class="form-card" method="post" th:action="${edit} ? '/admin/students/edit' : '/admin/students/add'">
+    <section class="form-section">
+        <h2>基本信息</h2>
+        <div class="form-grid">
+            <label class="required">学号<input name="studentId" required th:readonly="${edit}" th:value="${row['hxx_student_id11']}" placeholder="如 S2023001"></label>
+            <label class="required">姓名<input name="studentName" required th:value="${row['hxx_student_name11']}" placeholder="请输入学生姓名"></label>
+            <label class="required">性别<select name="gender" required><option th:selected="${row['hxx_gender11'] == '男'}">男</option><option th:selected="${row['hxx_gender11'] == '女'}">女</option></select></label>
+            <label class="required">年龄<input name="age" type="number" required min="15" max="35" th:value="${row['hxx_age11'] ?: 20}" placeholder="15-35"></label>
+        </div>
+    </section>
+    <section class="form-section">
+        <h2>学籍信息</h2>
+        <div class="form-grid">
+            <label class="required">生源地<select name="regionId" required><option th:each="o:${options.regions}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_region_id11']}"></option></select></label>
+            <label class="required">班级<select name="classId" required><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_class_id11']}"></option></select></label>
+            <label>已修学分<input name="totalCredit" type="number" min="0" step="0.5" th:value="${row['hxx_total_credit11'] ?: 0}" placeholder="0"></label>
+            <label>当前绩点<input name="gpa" type="number" min="0" max="5" step="0.01" th:value="${row['hxx_gpa11'] ?: 0}" placeholder="0.00"></label>
+            <label>学籍状态<select name="status"><option th:selected="${row['hxx_status11'] == '在读'}">在读</option><option th:selected="${row['hxx_status11'] == '休学'}">休学</option><option th:selected="${row['hxx_status11'] == '毕业'}">毕业</option><option th:selected="${row['hxx_status11'] == '退学'}">退学</option></select></label>
+            <label>入学日期<input name="enrollDate" type="date" th:value="${row['hxx_enroll_date11'] ?: '2023-09-01'}"></label>
+        </div>
+    </section>
+    <section class="form-section">
+        <h2>联系方式与账号</h2>
+        <div class="form-grid">
+            <label>手机号<input name="phone" th:value="${row['hxx_phone11']}" placeholder="请输入手机号"></label>
+            <label>登录密码<input name="password" type="password" placeholder="留空则保持原密码；新增时默认 123456"></label>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button type="submit">保存</button>
+        <a class="button secondary" href="/admin/students">返回</a>
+    </div>
 </form>
 </main>
 </div>

@@ -34,7 +34,7 @@
                 <input type="hidden" name="mode" value="class">
                 <label>
                     班级
-                    <select name="classId">
+                    <select name="classKey">
                         <option value="">全部班级</option>
                         <option th:each="cls : ${classes}"
                                 th:value="${cls['id']}"
@@ -58,7 +58,7 @@
                 <input type="hidden" name="mode" value="major">
                 <label>
                     专业
-                    <select name="majorId">
+                    <select name="majorKey">
                         <option value="">全部专业</option>
                         <option th:each="major : ${majors}"
                                 th:value="${major['id']}"
@@ -81,7 +81,7 @@
             </form>
         </section>
 
-        <div th:replace="~{fragments/layout :: table(${rows})}"></div>
+        <div th:replace="~{fragments/layout :: table(${rows}, ${columns})}"></div>
     </main>
 </div>
 </body>

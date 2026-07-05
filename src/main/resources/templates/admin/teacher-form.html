@@ -5,17 +5,42 @@
 <div th:replace="~{fragments/layout :: topbar}"></div>
 <div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
 <main class="content">
-<h1 th:text="${title}">教师表单</h1>
-<form class="form-grid" method="post" th:action="${edit} ? '/admin/teachers/edit' : '/admin/teachers/add'">
-    <label>教师编号<input name="teacherId" required th:readonly="${edit}" th:value="${row['hxx_teacher_id11']}"></label>
-    <label>姓名<input name="teacherName" required th:value="${row['hxx_teacher_name11']}"></label>
-    <label>性别<select name="gender"><option>男</option><option>女</option></select></label>
-    <label>年龄<input name="age" type="number" required th:value="${row['hxx_age11'] ?: 35}"></label>
-    <label>职称<select name="title"><option>助教</option><option>讲师</option><option>副教授</option><option>教授</option></select></label>
-    <label>电话<input name="phone" th:value="${row['hxx_phone11']}"></label>
-    <label>学院<input name="collegeName" required th:value="${row['hxx_college_name11'] ?: '计算机学院'}"></label>
-    <label>状态<select name="status"><option>在职</option><option>离职</option><option>退休</option></select></label>
-    <button type="submit">保存</button>
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-title">
+    <p class="eyebrow">Teacher Profile</p>
+    <h1 th:text="${title}">教师表单</h1>
+    <p>维护教师任职信息、联系方式和后台访问权限。</p>
+</section>
+<form class="form-card" method="post" th:action="${edit} ? '/admin/teachers/edit' : '/admin/teachers/add'">
+    <section class="form-section">
+        <h2>基本信息</h2>
+        <div class="form-grid">
+            <label class="required">工号<input name="teacherId" required th:readonly="${edit}" th:value="${row['hxx_teacher_id11']}" placeholder="如 T001"></label>
+            <label class="required">姓名<input name="teacherName" required th:value="${row['hxx_teacher_name11']}" placeholder="请输入教师姓名"></label>
+            <label class="required">性别<select name="gender" required><option th:selected="${row['hxx_gender11'] == '男'}">男</option><option th:selected="${row['hxx_gender11'] == '女'}">女</option></select></label>
+            <label class="required">年龄<input name="age" type="number" required min="22" max="70" th:value="${row['hxx_age11'] ?: 35}" placeholder="22-70"></label>
+        </div>
+    </section>
+    <section class="form-section">
+        <h2>任职信息</h2>
+        <div class="form-grid">
+            <label class="required">学院<input name="collegeName" required th:value="${row['hxx_college_name11'] ?: '计算机学院'}" placeholder="请输入所属学院"></label>
+            <label class="required">职称<select name="title" required><option th:selected="${row['hxx_title11'] == '助教'}">助教</option><option th:selected="${row['hxx_title11'] == '讲师'}">讲师</option><option th:selected="${row['hxx_title11'] == '副教授'}">副教授</option><option th:selected="${row['hxx_title11'] == '教授'}">教授</option></select></label>
+            <label>状态<select name="status"><option th:selected="${row['hxx_status11'] == '在职'}">在职</option><option th:selected="${row['hxx_status11'] == '离职'}">离职</option><option th:selected="${row['hxx_status11'] == '退休'}">退休</option></select></label>
+            <label>管理员权限<select name="adminFlag"><option value="N" th:selected="${row['adminFlag'] != 'Y'}">否</option><option value="Y" th:selected="${row['adminFlag'] == 'Y'}">是</option></select></label>
+        </div>
+    </section>
+    <section class="form-section">
+        <h2>联系方式与账号</h2>
+        <div class="form-grid">
+            <label>手机号<input name="phone" th:value="${row['hxx_phone11']}" placeholder="请输入手机号"></label>
+            <label>登录密码<input name="password" type="password" placeholder="留空则保持原密码；新增时默认 123456"></label>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button type="submit">保存</button>
+        <a class="button secondary" href="/admin/teachers">返回</a>
+    </div>
 </form>
 </main></div>
 </body>

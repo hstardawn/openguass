@@ -5,17 +5,35 @@
 <div th:replace="~{fragments/layout :: topbar}"></div>
 <div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
 <main class="content">
-<h1 th:text="${title}">教学任务表单</h1>
-<form class="form-grid" method="post" th:action="${edit} ? '/admin/tasks/edit' : '/admin/tasks/add'">
-    <label>任务编号<input name="taskId" required th:readonly="${edit}" th:value="${row['hxx_task_id11']}"></label>
-    <label>课程<select name="courseId"><option th:each="o:${options.courses}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
-    <label>教师<select name="teacherId"><option th:each="o:${options.teachers}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
-    <label>班级<select name="classId"><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
-    <label>学期<select name="termId"><option th:each="o:${options.terms}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
-    <label>地点<input name="teachingPlace" th:value="${row['hxx_teaching_place11']}"></label>
-    <label>最大人数<input name="maxCount" type="number" th:value="${row['hxx_max_count11'] ?: 60}"></label>
-    <label>状态<select name="taskStatus"><option>未开始</option><option>开课中</option><option>已结束</option><option>取消</option></select></label>
-    <button type="submit">保存</button>
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-title">
+    <p class="eyebrow">Teaching Task</p>
+    <h1 th:text="${title}">教学任务表单</h1>
+    <p>为指定课程安排任课教师、授课班级、学期和上课地点。</p>
+</section>
+<form class="form-card" method="post" th:action="${edit} ? '/admin/tasks/edit' : '/admin/tasks/add'">
+    <section class="form-section">
+        <h2>课程与教师</h2>
+        <div class="form-grid">
+            <label class="required">任务编号<input name="taskId" required th:readonly="${edit}" th:value="${row['hxx_task_id11']}" placeholder="如 TASK011"></label>
+            <label class="required">课程<select name="courseId" required><option th:each="o:${options.courses}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_course_id11']}"></option></select></label>
+            <label class="required">教师<select name="teacherId" required><option th:each="o:${options.teachers}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_teacher_id11']}"></option></select></label>
+            <label class="required">班级<select name="classId" required><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_class_id11']}"></option></select></label>
+        </div>
+    </section>
+    <section class="form-section">
+        <h2>学期与容量</h2>
+        <div class="form-grid">
+            <label class="required">学期<select name="termId" required><option th:each="o:${options.terms}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_term_id11']}"></option></select></label>
+            <label>上课地点<input name="teachingPlace" th:value="${row['hxx_teaching_place11']}" placeholder="如 博易楼A101"></label>
+            <label>最大人数<input name="maxCount" type="number" min="1" max="500" th:value="${row['hxx_max_count11'] ?: 60}" placeholder="60"></label>
+            <label>任务状态<select name="taskStatus"><option th:selected="${row['hxx_task_status11'] == '未开始'}">未开始</option><option th:selected="${row['hxx_task_status11'] == '开课中'}">开课中</option><option th:selected="${row['hxx_task_status11'] == '已结束'}">已结束</option><option th:selected="${row['hxx_task_status11'] == '取消'}">取消</option></select></label>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button type="submit">保存</button>
+        <a class="button secondary" href="/admin/tasks">返回</a>
+    </div>
 </form>
 </main></div>
 </body>

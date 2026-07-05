@@ -72,7 +72,7 @@
     <div class="alert error" th:if="${error}" th:text="${error}"></div>
 </div>
 
-<div th:fragment="table(rows)" class="data-card">
+<div th:fragment="table(rows, columns)" class="data-card">
     <div class="table-toolbar" th:if="${!#lists.isEmpty(rows)}">
         <span>数据列表</span>
         <small th:text="${#lists.size(rows)} + ' 条记录'">0 条记录</small>
@@ -85,18 +85,26 @@
         <table>
             <thead>
             <tr>
-                <th th:each="entry : ${rows[0].entrySet()}"
-                    th:if="${!#strings.endsWith(entry.key, 'Id')}"
-                    th:text="${entry.key}">字段</th>
+                <th th:each="col : ${columns}"
+                    th:if="${col.visible()}"
+                    th:text="${col.label()}"
+                    th:classappend="${col.align() == 'right'} ? 'cell-right' : (${col.align() == 'center'} ? 'cell-center' : '')">字段</th>
+                <th th:if="${rows[0].containsKey('editPath') || rows[0].containsKey('deletePath')}">操作</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="row : ${rows}">
-                <td th:each="entry : ${row.entrySet()}"
-                    th:if="${!#strings.endsWith(entry.key, 'Id')}"
-                    th:classappend="${#strings.contains(entry.key, '状态') || #strings.contains(entry.key, '结果') || #strings.contains(entry.key, '等级')} ? 'status-cell' : (${#strings.contains(entry.key, '原因') || #strings.contains(entry.key, '描述') || #strings.contains(entry.key, '业务对象')} ? 'text-cell' : '')">
-                    <span th:if="${#strings.contains(entry.key, '状态') || #strings.contains(entry.key, '结果') || #strings.contains(entry.key, '等级')}" class="status-badge" th:text="${entry.value}">值</span>
-                    <span th:unless="${#strings.contains(entry.key, '状态') || #strings.contains(entry.key, '结果') || #strings.contains(entry.key, '等级')}" th:text="${entry.value}">值</span>
+                <td th:each="col : ${columns}"
+                    th:if="${col.visible()}"
+                    th:classappend="${col.type() == 'longText'} ? 'text-cell' : (${col.align() == 'right'} ? 'cell-right' : (${col.align() == 'center'} ? 'cell-center' : ''))">
+                    <span th:if="${col.type() == 'status'}" class="status-badge" th:classappend="${row[col.field()]}" th:text="${row[col.field()] ?: '—'}">值</span>
+                    <span th:unless="${col.type() == 'status'}" th:text="${row[col.field()] ?: '—'}">值</span>
+                </td>
+                <td class="inline-actions" th:if="${row.containsKey('editPath') || row.containsKey('deletePath')}">
+                    <a class="table-action" th:if="${row['editPath'] != null}" th:href="${row['editPath']}">编辑</a>
+                    <form th:if="${row['deletePath'] != null}" method="post" th:action="${row['deletePath']}" data-confirm="确认删除这条记录吗？删除前系统会检查关联数据。">
+                        <button class="danger small" type="submit">删除</button>
+                    </form>
                 </td>
             </tr>
             </tbody>

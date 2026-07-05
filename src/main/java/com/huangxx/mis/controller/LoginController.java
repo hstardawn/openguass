@@ -40,7 +40,7 @@ public class LoginController {
                           RedirectAttributes attributes) {
         Optional<SessionUser> user = loginService.login(loginName, password);
         if (user.isEmpty()) {
-            attributes.addFlashAttribute(AppConstants.FLASH_ERROR, "登录失败：账号、密码错误或用户被禁用");
+            attributes.addFlashAttribute(AppConstants.FLASH_ERROR, "用户名或密码错误，请重新输入");
             return "redirect:/login";
         }
         session.setAttribute(AppConstants.SESSION_USER, user.get());

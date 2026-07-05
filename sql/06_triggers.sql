@@ -7,6 +7,8 @@ DROP TRIGGER IF EXISTS Huangxx_TrigCheckSelection11 ON Huangxx_CourseSelection11
 DROP TRIGGER IF EXISTS Huangxx_TrigSelectionCount11 ON Huangxx_CourseSelection11;
 DROP TRIGGER IF EXISTS Huangxx_TrigAppealHandleTime11 ON Huangxx_ScoreAppeal11;
 DROP TRIGGER IF EXISTS Huangxx_TrigAppealAudit11 ON Huangxx_ScoreAppeal11;
+DROP TRIGGER IF EXISTS Huangxx_TrigStudentDefaultUser11 ON Huangxx_Student11;
+DROP TRIGGER IF EXISTS Huangxx_TrigTeacherDefaultUser11 ON Huangxx_Teacher11;
 
 DROP FUNCTION IF EXISTS Huangxx_FuncSetScoreComputed11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncRecalculateCreditGpa11() CASCADE;
@@ -15,6 +17,46 @@ DROP FUNCTION IF EXISTS Huangxx_FuncCheckSelection11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncSelectionCount11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncAppealHandleTime11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncAppealAudit11() CASCADE;
+DROP FUNCTION IF EXISTS Huangxx_FuncStudentDefaultUser11() CASCADE;
+DROP FUNCTION IF EXISTS Huangxx_FuncTeacherDefaultUser11() CASCADE;
+
+-- 课程设计演示环境保持明文密码策略；新增学生/教师如果没有显式创建登录用户，
+-- 由数据库触发器自动写入基础密码 123456，后续可在应用层修改。
+CREATE OR REPLACE FUNCTION Huangxx_FuncStudentDefaultUser11()
+RETURNS trigger AS $$
+BEGIN
+    INSERT INTO Huangxx_SystemUser11
+    (hxx_user_id11, hxx_login_name11, hxx_password11, hxx_role11, hxx_ref_id11, hxx_user_status11)
+    SELECT 'U-' || NEW.hxx_student_id11, lower(NEW.hxx_student_id11), '123456', '学生', NEW.hxx_student_id11, '正常'
+     WHERE NOT EXISTS (
+        SELECT 1 FROM Huangxx_SystemUser11
+         WHERE hxx_ref_id11 = NEW.hxx_student_id11 AND hxx_role11 = '学生'
+     );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER Huangxx_TrigStudentDefaultUser11
+AFTER INSERT ON Huangxx_Student11
+FOR EACH ROW EXECUTE PROCEDURE Huangxx_FuncStudentDefaultUser11();
+
+CREATE OR REPLACE FUNCTION Huangxx_FuncTeacherDefaultUser11()
+RETURNS trigger AS $$
+BEGIN
+    INSERT INTO Huangxx_SystemUser11
+    (hxx_user_id11, hxx_login_name11, hxx_password11, hxx_role11, hxx_ref_id11, hxx_user_status11)
+    SELECT 'U-' || NEW.hxx_teacher_id11, lower(NEW.hxx_teacher_id11), '123456', '教师', NEW.hxx_teacher_id11, '正常'
+     WHERE NOT EXISTS (
+        SELECT 1 FROM Huangxx_SystemUser11
+         WHERE hxx_ref_id11 = NEW.hxx_teacher_id11 AND hxx_role11 IN ('教师', '管理员')
+     );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER Huangxx_TrigTeacherDefaultUser11
+AFTER INSERT ON Huangxx_Teacher11
+FOR EACH ROW EXECUTE PROCEDURE Huangxx_FuncTeacherDefaultUser11();
 
 CREATE OR REPLACE FUNCTION Huangxx_FuncSetScoreComputed11()
 RETURNS trigger AS $$

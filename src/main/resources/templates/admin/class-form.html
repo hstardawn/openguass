@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title th:text="${title}">班级表单</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-title">
+    <p class="eyebrow">Class Settings</p>
+    <h1 th:text="${title}">班级表单</h1>
+    <p>维护行政班级、所属专业、入学年份和班级规模。</p>
+</section>
+<form class="form-card" method="post" th:action="${edit} ? '/admin/classes/edit' : '/admin/classes/add'">
+    <section class="form-section">
+        <h2>班级信息</h2>
+        <div class="form-grid">
+            <label class="required">班级编号<input name="classId" required th:readonly="${edit}" th:value="${row['hxx_class_id11']}" placeholder="如 CL-AI2301"></label>
+            <label class="required">班级名称<input name="className" required th:value="${row['hxx_class_name11']}" placeholder="如 人工智能2301"></label>
+            <label class="required">所属专业<select name="majorId" required><option th:each="o:${options.majors}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_major_id11']}"></option></select></label>
+            <label class="required">入学年份<input name="gradeYear" type="number" required min="2000" max="2100" th:value="${row['hxx_grade_year11'] ?: 2023}" placeholder="2023"></label>
+            <label>班级人数<input name="classSize" type="number" min="0" max="500" th:value="${row['hxx_class_size11'] ?: 0}" placeholder="0"></label>
+            <label class="wide">备注<input name="remark" th:value="${row['hxx_remark11']}" placeholder="请输入备注"></label>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button type="submit">保存</button>
+        <a class="button secondary" href="/admin/classes">返回</a>
+    </div>
+</form>
+</main></div>
+</body>
+</html>

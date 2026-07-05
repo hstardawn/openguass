@@ -3,6 +3,7 @@ package com.huangxx.mis.controller;
 import com.huangxx.mis.common.ControllerSupport;
 import com.huangxx.mis.common.SessionUser;
 import com.huangxx.mis.service.StudentService;
+import com.huangxx.mis.view.TableColumn;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
@@ -45,6 +46,13 @@ public class StudentController {
         ControllerSupport.putUser(model, session);
         model.addAttribute("title", "已选课程");
         model.addAttribute("rows", studentService.selections(user.refId()));
+        model.addAttribute("columns", java.util.List.of(
+                TableColumn.text("课程名称", "课程名称"),
+                TableColumn.text("任课教师", "任课教师"),
+                TableColumn.text("学期", "学期"),
+                TableColumn.status("选课状态", "选课状态"),
+                TableColumn.status("成绩发布状态", "成绩发布状态")
+        ));
         return "student/selections";
     }
 
@@ -70,6 +78,18 @@ public class StudentController {
         SessionUser user = ControllerSupport.currentUser(session);
         ControllerSupport.putUser(model, session);
         model.addAttribute("rows", studentService.appeals(user.refId()));
+        model.addAttribute("columns", java.util.List.of(
+                TableColumn.text("学生姓名", "学生姓名"),
+                TableColumn.text("班级", "班级"),
+                TableColumn.text("课程名称", "课程名称"),
+                TableColumn.text("任课教师", "任课教师"),
+                TableColumn.number("当前成绩", "当前成绩"),
+                TableColumn.longText("申诉理由", "申诉理由"),
+                TableColumn.status("申诉状态", "申诉状态"),
+                TableColumn.longText("处理结果", "处理结果"),
+                TableColumn.dateTime("申请时间", "申请时间"),
+                TableColumn.dateTime("处理时间", "处理时间")
+        ));
         return "student/appeals";
     }
 
@@ -91,7 +111,7 @@ public class StudentController {
             studentService.addAppeal(user, scoreId, reason);
             return ControllerSupport.redirectWithSuccess(attributes, "/student/appeals", "申诉已提交");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/student/appeals", "提交申诉失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/student/appeals", ControllerSupport.friendlyError("提交申诉", ex));
         }
     }
 }

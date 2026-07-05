@@ -2,6 +2,7 @@ package com.huangxx.mis.controller;
 
 import com.huangxx.mis.common.ControllerSupport;
 import com.huangxx.mis.service.AdminService;
+import com.huangxx.mis.view.TablePage;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
@@ -38,10 +39,19 @@ public class AdminController {
     public String table(Model model, HttpSession session, jakarta.servlet.http.HttpServletRequest request) {
         ControllerSupport.putUser(model, session);
         String key = keyFromPath(request.getRequestURI());
-        model.addAttribute("title", title(key));
-        model.addAttribute("description", description(key));
-        model.addAttribute("rows", adminService.table(key));
+        Map<String, String> filters = request.getParameterMap().entrySet().stream()
+                .filter(entry -> entry.getValue().length > 0)
+                .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
+        filters = normalizeFilters(filters);
+        TablePage tablePage = adminService.table(key, filters);
+        model.addAttribute("tablePage", tablePage);
+        model.addAttribute("title", tablePage.title());
+        model.addAttribute("description", tablePage.description());
+        model.addAttribute("rows", tablePage.rows());
+        model.addAttribute("columns", tablePage.columns());
         model.addAttribute("pageKey", key);
+        model.addAttribute("filters", filters);
+        model.addAttribute("options", adminService.options());
         return "admin/table";
     }
 
@@ -50,21 +60,26 @@ public class AdminController {
                        HttpSession session,
                        @RequestParam(defaultValue = "class") String mode,
                        @RequestParam(required = false) String classId,
+                       @RequestParam(required = false) String classKey,
                        @RequestParam(required = false) String majorId,
+                       @RequestParam(required = false) String majorKey,
                        @RequestParam(required = false) Integer gradeYear) {
         ControllerSupport.putUser(model, session);
         boolean majorMode = "major".equals(mode);
+        String selectedClass = classId != null && !classId.isBlank() ? classId : classKey;
+        String selectedMajor = majorId != null && !majorId.isBlank() ? majorId : majorKey;
         model.addAttribute("title", "成绩排名");
         model.addAttribute("mode", majorMode ? "major" : "class");
-        model.addAttribute("classId", classId);
-        model.addAttribute("majorId", majorId);
+        model.addAttribute("classId", selectedClass);
+        model.addAttribute("majorId", selectedMajor);
         model.addAttribute("gradeYear", gradeYear);
         model.addAttribute("classes", adminService.classOptions());
         model.addAttribute("majors", adminService.majorOptions());
         model.addAttribute("gradeYears", adminService.gradeYears());
+        model.addAttribute("columns", adminService.rankColumns(majorMode ? "major" : "class"));
         model.addAttribute("rows", majorMode
-                ? adminService.majorScoreRanks(majorId, gradeYear)
-                : adminService.classScoreRanks(classId));
+                ? adminService.majorScoreRanks(selectedMajor, gradeYear)
+                : adminService.classScoreRanks(selectedClass));
         return "admin/rank";
     }
 
@@ -87,7 +102,7 @@ public class AdminController {
             int count = adminService.importStudents(importText);
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/students", "成功导入 " + count + " 名学生");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/students/import", "导入失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/admin/students/import", ControllerSupport.friendlyError("导入", ex));
         }
     }
 
@@ -105,7 +120,7 @@ public class AdminController {
             adminService.saveStudent(form, request.getRequestURI().contains("/edit"));
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/students", "学生信息已保存");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/students", "保存学生失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/admin/students", ControllerSupport.friendlyError("保存学生", ex));
         }
     }
 
@@ -114,8 +129,8 @@ public class AdminController {
         try {
             adminService.deleteStudent(id);
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/students", "学生已删除");
-        } catch (DataAccessException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/students", "删除学生失败：" + ex.getMessage());
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/students", ControllerSupport.friendlyError("删除学生", ex));
         }
     }
 
@@ -139,7 +154,7 @@ public class AdminController {
             adminService.saveTeacher(form, request.getRequestURI().contains("/edit"));
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/teachers", "教师信息已保存");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/teachers", "保存教师失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/admin/teachers", ControllerSupport.friendlyError("保存教师", ex));
         }
     }
 
@@ -148,8 +163,8 @@ public class AdminController {
         try {
             adminService.deleteTeacher(id);
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/teachers", "教师已删除");
-        } catch (DataAccessException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/teachers", "删除教师失败：" + ex.getMessage());
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/teachers", ControllerSupport.friendlyError("删除教师", ex));
         }
     }
 
@@ -173,7 +188,7 @@ public class AdminController {
             adminService.saveCourse(form, request.getRequestURI().contains("/edit"));
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/courses", "课程信息已保存");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/courses", "保存课程失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/admin/courses", ControllerSupport.friendlyError("保存课程", ex));
         }
     }
 
@@ -182,8 +197,76 @@ public class AdminController {
         try {
             adminService.deleteCourse(id);
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/courses", "课程已删除");
-        } catch (DataAccessException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/courses", "删除课程失败：" + ex.getMessage());
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/courses", ControllerSupport.friendlyError("删除课程", ex));
+        }
+    }
+
+    @GetMapping("/admin/majors/add")
+    public String addMajor(Model model, HttpSession session) {
+        prepareForm(model, session, "新增专业", "majors", false, Map.of());
+        return "admin/major-form";
+    }
+
+    @GetMapping("/admin/majors/edit/{id}")
+    public String editMajor(@PathVariable String id, Model model, HttpSession session) {
+        prepareForm(model, session, "编辑专业", "majors", true, adminService.editData("majors", id));
+        return "admin/major-form";
+    }
+
+    @PostMapping({"/admin/majors/add", "/admin/majors/edit"})
+    public String saveMajor(@RequestParam Map<String, String> form,
+                            RedirectAttributes attributes,
+                            jakarta.servlet.http.HttpServletRequest request) {
+        try {
+            adminService.saveMajor(form, request.getRequestURI().contains("/edit"));
+            return ControllerSupport.redirectWithSuccess(attributes, "/admin/majors", "专业信息已保存");
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/majors", ControllerSupport.friendlyError("保存专业", ex));
+        }
+    }
+
+    @PostMapping("/admin/majors/delete/{id}")
+    public String deleteMajor(@PathVariable String id, RedirectAttributes attributes) {
+        try {
+            adminService.deleteMajor(id);
+            return ControllerSupport.redirectWithSuccess(attributes, "/admin/majors", "专业已删除");
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/majors", ControllerSupport.friendlyError("删除专业", ex));
+        }
+    }
+
+    @GetMapping("/admin/classes/add")
+    public String addClass(Model model, HttpSession session) {
+        prepareForm(model, session, "新增班级", "classes", false, Map.of());
+        return "admin/class-form";
+    }
+
+    @GetMapping("/admin/classes/edit/{id}")
+    public String editClass(@PathVariable String id, Model model, HttpSession session) {
+        prepareForm(model, session, "编辑班级", "classes", true, adminService.editData("classes", id));
+        return "admin/class-form";
+    }
+
+    @PostMapping({"/admin/classes/add", "/admin/classes/edit"})
+    public String saveClass(@RequestParam Map<String, String> form,
+                            RedirectAttributes attributes,
+                            jakarta.servlet.http.HttpServletRequest request) {
+        try {
+            adminService.saveClass(form, request.getRequestURI().contains("/edit"));
+            return ControllerSupport.redirectWithSuccess(attributes, "/admin/classes", "班级信息已保存");
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/classes", ControllerSupport.friendlyError("保存班级", ex));
+        }
+    }
+
+    @PostMapping("/admin/classes/delete/{id}")
+    public String deleteClass(@PathVariable String id, RedirectAttributes attributes) {
+        try {
+            adminService.deleteClass(id);
+            return ControllerSupport.redirectWithSuccess(attributes, "/admin/classes", "班级已删除");
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/classes", ControllerSupport.friendlyError("删除班级", ex));
         }
     }
 
@@ -207,7 +290,17 @@ public class AdminController {
             adminService.saveTask(form, request.getRequestURI().contains("/edit"));
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/tasks", "教学任务已保存");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/admin/tasks", "保存教学任务失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/admin/tasks", ControllerSupport.friendlyError("保存教学任务", ex));
+        }
+    }
+
+    @PostMapping("/admin/tasks/delete/{id}")
+    public String deleteTask(@PathVariable String id, RedirectAttributes attributes) {
+        try {
+            adminService.deleteTask(id);
+            return ControllerSupport.redirectWithSuccess(attributes, "/admin/tasks", "教学任务已删除");
+        } catch (DataAccessException | IllegalArgumentException ex) {
+            return ControllerSupport.redirectWithError(attributes, "/admin/tasks", ControllerSupport.friendlyError("删除教学任务", ex));
         }
     }
 
@@ -228,6 +321,22 @@ public class AdminController {
         if (path.contains("/audit/score")) return "audit-score";
         if (path.contains("/logs")) return "logs";
         return path.substring(path.lastIndexOf('/') + 1);
+    }
+
+    private Map<String, String> normalizeFilters(Map<String, String> filters) {
+        java.util.Map<String, String> normalized = new java.util.HashMap<>(filters);
+        alias(normalized, "classKey", "classId");
+        alias(normalized, "regionKey", "regionId");
+        alias(normalized, "teacherKey", "teacherId");
+        alias(normalized, "courseKey", "courseId");
+        alias(normalized, "majorKey", "majorId");
+        return normalized;
+    }
+
+    private void alias(Map<String, String> filters, String from, String to) {
+        if (filters.containsKey(from) && !filters.containsKey(to)) {
+            filters.put(to, filters.get(from));
+        }
     }
 
     private String title(String key) {

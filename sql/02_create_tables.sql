@@ -76,7 +76,7 @@ CREATE TABLE Huangxx_Teacher11 (
 );
 
 CREATE TABLE Huangxx_Course11 (
-    hxx_course_id11 varchar(20) PRIMARY KEY,
+    hxx_course_id11 serial PRIMARY KEY,
     hxx_course_name11 varchar(80) NOT NULL,
     hxx_credit11 numeric(3,1) NOT NULL CHECK (hxx_credit11 > 0),
     hxx_period11 int NOT NULL CHECK (hxx_period11 > 0),
@@ -97,7 +97,7 @@ CREATE TABLE Huangxx_Term11 (
 
 CREATE TABLE Huangxx_TeachingTask11 (
     hxx_task_id11 varchar(20) PRIMARY KEY,
-    hxx_course_id11 varchar(20) NOT NULL,
+    hxx_course_id11 integer NOT NULL,
     hxx_teacher_id11 varchar(20) NOT NULL,
     hxx_class_id11 varchar(20) NOT NULL,
     hxx_term_id11 varchar(20) NOT NULL,
@@ -168,7 +168,7 @@ CREATE TABLE Huangxx_ScoreAudit11 (
 CREATE TABLE Huangxx_CreditLog11 (
     hxx_credit_log_id11 varchar(30) PRIMARY KEY,
     hxx_student_id11 varchar(20) NOT NULL,
-    hxx_course_id11 varchar(20) NOT NULL,
+    hxx_course_id11 integer NOT NULL,
     hxx_score_id11 varchar(30) NOT NULL,
     hxx_credit_change11 numeric(3,1) NOT NULL CHECK (hxx_credit_change11 <> 0),
     hxx_before_credit11 numeric(5,1) NOT NULL CHECK (hxx_before_credit11 >= 0),

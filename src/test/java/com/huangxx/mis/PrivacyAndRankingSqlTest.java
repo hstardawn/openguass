@@ -40,7 +40,8 @@ class PrivacyAndRankingSqlTest {
         assertThat(teacherTasks).doesNotContain("<th>任务</th>", "hxx_task_id11", "hxx_score_publish_flag11");
         assertThat(studentScores).doesNotContain("hxx_course_name11", "hxx_score_id11");
         assertThat(studentProfile).doesNotContain("profile.entrySet()");
-        assertThat(layout).contains("!#strings.endsWith(entry.key, 'Id')");
+        assertThat(layout).doesNotContain("entrySet()", "entry.key");
+        assertThat(layout).contains("col.visible()", "col.label()", "row[col.field()]");
     }
 
     @Test
@@ -58,7 +59,8 @@ class PrivacyAndRankingSqlTest {
         String template = Files.readString(Path.of("src/main/resources/templates/admin/rank.html"));
         String repository = Files.readString(Path.of("src/main/java/com/huangxx/mis/repository/AdminRepository.java"));
 
-        assertThat(template).contains("name=\"classId\"", "班级排名", "专业年级排名");
+        assertThat(template).contains("name=\"classKey\"", "班级排名", "专业年级排名");
+        assertThat(template).doesNotContain("name=\"classId\"");
         assertThat(repository).contains("scoreRanksByClass", "scoreRanksByMajor");
     }
 }

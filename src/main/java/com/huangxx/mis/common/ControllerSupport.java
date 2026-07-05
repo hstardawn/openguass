@@ -29,4 +29,11 @@ public final class ControllerSupport {
         attributes.addFlashAttribute(AppConstants.FLASH_ERROR, message);
         return "redirect:" + path;
     }
+
+    public static String friendlyError(String action, Exception ex) {
+        if (ex instanceof IllegalArgumentException && ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            return action + "失败：" + ex.getMessage();
+        }
+        return action + "失败：请检查输入内容后重试";
+    }
 }

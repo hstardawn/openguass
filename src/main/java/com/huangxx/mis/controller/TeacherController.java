@@ -3,6 +3,7 @@ package com.huangxx.mis.controller;
 import com.huangxx.mis.common.ControllerSupport;
 import com.huangxx.mis.common.SessionUser;
 import com.huangxx.mis.service.TeacherService;
+import com.huangxx.mis.view.TableColumn;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,14 @@ public class TeacherController {
         SessionUser user = ControllerSupport.currentUser(session);
         ControllerSupport.putUser(model, session);
         model.addAttribute("tasks", teacherService.tasks(user.refId()));
+        model.addAttribute("taskColumns", java.util.List.of(
+                TableColumn.text("课程名称", "课程名称"),
+                TableColumn.text("班级", "班级"),
+                TableColumn.text("学期", "学期"),
+                TableColumn.text("上课地点", "上课地点"),
+                TableColumn.text("选课人数", "选课人数"),
+                TableColumn.status("成绩发布状态", "成绩发布状态")
+        ));
         return "teacher/index";
     }
 
@@ -69,7 +78,7 @@ public class TeacherController {
             teacherService.addScore(user, selectionId, usualScore, examScore);
             return ControllerSupport.redirectWithSuccess(attributes, "/teacher/tasks", "成绩录入成功，最终成绩、等级和 GPA 已由数据库自动维护");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/teacher/tasks", "成绩录入失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/teacher/tasks", ControllerSupport.friendlyError("成绩录入", ex));
         }
     }
 
@@ -93,7 +102,7 @@ public class TeacherController {
             teacherService.editScore(user, scoreId, usualScore, examScore, reason);
             return ControllerSupport.redirectWithSuccess(attributes, "/teacher/tasks", "成绩修改成功，审计记录已写入");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/teacher/tasks", "成绩修改失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/teacher/tasks", ControllerSupport.friendlyError("成绩修改", ex));
         }
     }
 
@@ -104,7 +113,7 @@ public class TeacherController {
             teacherService.publish(user, taskId);
             return ControllerSupport.redirectWithSuccess(attributes, "/teacher/tasks", "成绩已发布，学生端现在可见");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/teacher/tasks", "成绩发布失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/teacher/tasks", ControllerSupport.friendlyError("成绩发布", ex));
         }
     }
 
@@ -114,6 +123,18 @@ public class TeacherController {
         ControllerSupport.putUser(model, session);
         model.addAttribute("title", "课程成绩统计");
         model.addAttribute("rows", teacherService.courseStat(taskId, user.refId()));
+        model.addAttribute("columns", java.util.List.of(
+                TableColumn.text("课程名称", "课程名称"),
+                TableColumn.text("任课教师", "任课教师"),
+                TableColumn.text("班级", "班级"),
+                TableColumn.number("成绩人数", "成绩人数"),
+                TableColumn.number("平均分", "平均分"),
+                TableColumn.number("最高分", "最高分"),
+                TableColumn.number("最低分", "最低分"),
+                TableColumn.number("通过率", "通过率"),
+                TableColumn.number("优秀率", "优秀率"),
+                TableColumn.number("不及格人数", "不及格人数")
+        ));
         return "teacher/stat-course";
     }
 
@@ -136,7 +157,7 @@ public class TeacherController {
             teacherService.handleAppeal(user, appealId, status, result);
             return ControllerSupport.redirectWithSuccess(attributes, "/teacher/appeals", "申诉已处理，操作日志已写入");
         } catch (DataAccessException | IllegalArgumentException ex) {
-            return ControllerSupport.redirectWithError(attributes, "/teacher/appeals", "申诉处理失败：" + ex.getMessage());
+            return ControllerSupport.redirectWithError(attributes, "/teacher/appeals", ControllerSupport.friendlyError("申诉处理", ex));
         }
     }
 }
