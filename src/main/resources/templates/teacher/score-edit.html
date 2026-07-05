@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>修改成绩</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1>修改成绩</h1>
+<p class="lead" th:text="${score['hxx_course_name11'] + ' / ' + score['hxx_student_name11']}">成绩</p>
+<section class="summary">
+    <span>原平时：<strong th:text="${score['hxx_usual_score11']}"></strong></span>
+    <span>原期末：<strong th:text="${score['hxx_exam_score11']}"></strong></span>
+    <span>原最终：<strong th:text="${score['hxx_final_score11']}"></strong></span>
+</section>
+<form class="form-grid" method="post" action="/teacher/score/edit">
+    <input type="hidden" name="scoreId" th:value="${score['hxx_score_id11']}">
+    <label>新平时成绩<input name="usualScore" type="number" step="0.01" min="0" max="100" required th:value="${score['hxx_usual_score11']}"></label>
+    <label>新期末成绩<input name="examScore" type="number" step="0.01" min="0" max="100" required th:value="${score['hxx_exam_score11']}"></label>
+    <label class="wide">修改原因<textarea name="reason" required></textarea></label>
+    <button type="submit">提交修改</button>
+</form>
+</main></div>
+</body>
+</html>

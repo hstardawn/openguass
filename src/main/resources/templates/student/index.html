@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>学生首页</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<section class="page-hero">
+    <div>
+        <p class="eyebrow">Student Center</p>
+        <h1>学生中心</h1>
+        <p>查看已发布成绩、GPA、已修学分和申诉处理状态。</p>
+    </div>
+</section>
+<section class="stats">
+    <article><span>姓名</span><strong th:text="${profile['姓名']}"></strong></article>
+    <article><span>班级</span><strong th:text="${profile['班级']}"></strong></article>
+    <article><span>已修学分</span><strong th:text="${gpa['已修学分']}"></strong></article>
+    <article><span>GPA</span><strong th:text="${gpa['GPA']}"></strong></article>
+</section>
+<section class="overview-grid">
+    <article class="panel">
+        <h2>学习服务</h2>
+        <div class="quick-actions">
+            <a class="button" href="/student/scores">查看成绩</a>
+            <a class="button secondary" href="/student/appeals">申诉记录</a>
+            <a class="button secondary" href="/student/gpa">GPA 明细</a>
+        </div>
+    </article>
+    <article class="panel">
+        <h2>提醒</h2>
+        <div class="insight-list">
+            <span>已发布成绩可在成绩页发起申诉。</span>
+            <span>GPA 和学分统计基于已发布且有效的课程成绩。</span>
+        </div>
+    </article>
+</section>
+</main></div>
+</body>
+</html>

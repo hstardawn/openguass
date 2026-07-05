@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>成绩排名</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="page-hero page-head">
+            <div>
+                <p class="eyebrow">Ranking Center</p>
+                <h1>成绩排名</h1>
+                <p>班级排名按教学班和班级学期隔离；专业排名按专业、年级、学年、学期隔离。</p>
+            </div>
+            <div class="segmented">
+                <a th:classappend="${mode == 'class'} ? 'active' : ''" href="/admin/stat/rank?mode=class">班级排名</a>
+                <a th:classappend="${mode == 'major'} ? 'active' : ''" href="/admin/stat/rank?mode=major">专业年级排名</a>
+            </div>
+        </section>
+
+        <section class="panel filter-panel" th:if="${mode == 'class'}">
+            <div class="filter-title">
+                <div>
+                    <h2>班级排名筛选</h2>
+                    <p>适合查看单个行政班在同一学期内的课程表现和班级学期排名。</p>
+                </div>
+            </div>
+            <form method="get" action="/admin/stat/rank" class="filter-form">
+                <input type="hidden" name="mode" value="class">
+                <label>
+                    班级
+                    <select name="classId">
+                        <option value="">全部班级</option>
+                        <option th:each="cls : ${classes}"
+                                th:value="${cls['id']}"
+                                th:text="${cls['name']}"
+                                th:selected="${cls['id'] == classId}"></option>
+                    </select>
+                </label>
+                <button type="submit">筛选</button>
+                <a class="button secondary" href="/admin/stat/rank?mode=class">重置</a>
+            </form>
+        </section>
+
+        <section class="panel filter-panel" th:if="${mode == 'major'}">
+            <div class="filter-title">
+                <div>
+                    <h2>专业年级排名筛选</h2>
+                    <p>按专业、年级、学年和学期隔离排名，避免不同培养方案学生混排。</p>
+                </div>
+            </div>
+            <form method="get" action="/admin/stat/rank" class="filter-form">
+                <input type="hidden" name="mode" value="major">
+                <label>
+                    专业
+                    <select name="majorId">
+                        <option value="">全部专业</option>
+                        <option th:each="major : ${majors}"
+                                th:value="${major['id']}"
+                                th:text="${major['name']}"
+                                th:selected="${major['id'] == majorId}"></option>
+                    </select>
+                </label>
+                <label>
+                    年级
+                    <select name="gradeYear">
+                        <option value="">全部年级</option>
+                        <option th:each="year : ${gradeYears}"
+                                th:value="${year}"
+                                th:text="${year}"
+                                th:selected="${gradeYear != null && year == gradeYear}"></option>
+                    </select>
+                </label>
+                <button type="submit">筛选</button>
+                <a class="button secondary" href="/admin/stat/rank?mode=major">重置</a>
+            </form>
+        </section>
+
+        <div th:replace="~{fragments/layout :: table(${rows})}"></div>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>我的教学任务</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<div th:replace="~{fragments/layout :: messages}"></div>
+<h1>我的教学任务</h1>
+<div class="table-wrap">
+<table th:if="${!#lists.isEmpty(rows)}">
+<thead><tr><th>课程</th><th>班级</th><th>学期</th><th>上课地点</th><th>人数</th><th>发布</th><th>操作</th></tr></thead>
+<tbody>
+<tr th:each="r:${rows}">
+    <td th:text="${r['课程名称']}"></td>
+    <td th:text="${r['班级']}"></td>
+    <td th:text="${r['学期']}"></td>
+    <td th:text="${r['上课地点']}"></td>
+    <td th:text="${r['选课人数']}"></td>
+    <td><span class="status-badge" th:text="${r['成绩发布状态']}"></span></td>
+    <td class="inline-actions">
+        <a th:href="@{'/teacher/tasks/' + ${r['taskId']} + '/students'}">学生</a>
+        <a th:href="@{'/teacher/stat/course/' + ${r['taskId']}}">统计</a>
+        <form method="post" th:action="@{'/teacher/score/publish/' + ${r['taskId']}}">
+            <button type="submit">发布</button>
+        </form>
+    </td>
+</tr>
+</tbody>
+</table>
+<div class="empty" th:if="${#lists.isEmpty(rows)}">暂无教学任务</div>
+</div>
+</main></div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+-- 04_indexes.sql
+
+CREATE INDEX idx_Huangxx_Student_class11 ON Huangxx_Student11(hxx_class_id11);
+CREATE INDEX idx_Huangxx_Student_region11 ON Huangxx_Student11(hxx_region_id11);
+CREATE INDEX idx_Huangxx_Task_teacher11 ON Huangxx_TeachingTask11(hxx_teacher_id11);
+CREATE INDEX idx_Huangxx_Task_course11 ON Huangxx_TeachingTask11(hxx_course_id11);
+CREATE INDEX idx_Huangxx_Selection_student11 ON Huangxx_CourseSelection11(hxx_student_id11);
+CREATE INDEX idx_Huangxx_Selection_task11 ON Huangxx_CourseSelection11(hxx_task_id11);
+CREATE INDEX idx_Huangxx_Score_selection11 ON Huangxx_Score11(hxx_selection_id11);
+CREATE INDEX idx_Huangxx_Appeal_status11 ON Huangxx_ScoreAppeal11(hxx_appeal_status11);
+CREATE INDEX idx_Huangxx_OperationLog_time11 ON Huangxx_OperationLog11(hxx_operation_time11);

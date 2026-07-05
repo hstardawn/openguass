@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>个人信息</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1>个人信息</h1>
+<div class="profile">
+    <p><strong>学号</strong><span th:text="${profile['学号']}"></span></p>
+    <p><strong>姓名</strong><span th:text="${profile['姓名']}"></span></p>
+    <p><strong>性别</strong><span th:text="${profile['性别']}"></span></p>
+    <p><strong>年龄</strong><span th:text="${profile['年龄']}"></span></p>
+    <p><strong>专业</strong><span th:text="${profile['专业']}"></span></p>
+    <p><strong>班级</strong><span th:text="${profile['班级']}"></span></p>
+    <p><strong>生源地</strong><span th:text="${profile['生源地']}"></span></p>
+    <p><strong>联系电话</strong><span th:text="${profile['联系电话']}"></span></p>
+    <p><strong>学籍状态</strong><span th:text="${profile['学籍状态']}"></span></p>
+    <p><strong>入学日期</strong><span th:text="${profile['入学日期']}"></span></p>
+</div>
+</main></div>
+</body>
+</html>

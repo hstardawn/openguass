@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>教师首页</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-hero">
+    <div>
+        <p class="eyebrow">Teaching Desk</p>
+        <h1>教师工作台</h1>
+        <p>当前登录教师只能查看和操作自己的教学任务、成绩和申诉。</p>
+    </div>
+</section>
+<section class="overview-grid">
+    <article class="panel">
+        <h2>教学快捷入口</h2>
+        <div class="quick-actions">
+            <a class="button" href="/teacher/tasks">我的任务</a>
+            <a class="button secondary" href="/teacher/appeals">处理申诉</a>
+        </div>
+    </article>
+    <article class="panel">
+        <h2>操作边界</h2>
+        <div class="insight-list">
+            <span>只能查看本人教学任务关联的班级和课程。</span>
+            <span>成绩修改会写入审计记录，保留修改前后分数和原因。</span>
+        </div>
+    </article>
+</section>
+<div th:replace="~{fragments/layout :: table(${tasks})}"></div>
+</main></div>
+</body>
+</html>

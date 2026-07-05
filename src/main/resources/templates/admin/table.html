@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">管理页面</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="page-hero page-head">
+            <div>
+                <p class="eyebrow">Management</p>
+                <h1 th:text="${title}">管理页面</h1>
+                <p th:text="${description}">维护教务基础数据和业务信息。</p>
+            </div>
+            <div class="actions">
+                <a class="button" th:if="${pageKey == 'students'}" href="/admin/students/add">新增学生</a>
+                <a class="button secondary" th:if="${pageKey == 'students'}" href="/admin/students/import">一键导入</a>
+                <a class="button" th:if="${pageKey == 'teachers'}" href="/admin/teachers/add">新增教师</a>
+                <a class="button" th:if="${pageKey == 'courses'}" href="/admin/courses/add">新增课程</a>
+                <a class="button" th:if="${pageKey == 'tasks'}" href="/admin/tasks/add">新增教学任务</a>
+            </div>
+        </section>
+        <div th:replace="~{fragments/layout :: table(${rows})}"></div>
+    </main>
+</div>
+</body>
+</html>

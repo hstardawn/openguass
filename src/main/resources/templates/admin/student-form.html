@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title th:text="${title}">学生表单</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell">
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1 th:text="${title}">学生表单</h1>
+<form class="form-grid" method="post" th:action="${edit} ? '/admin/students/edit' : '/admin/students/add'">
+    <label>学号<input name="studentId" required th:readonly="${edit}" th:value="${row['hxx_student_id11']}"></label>
+    <label>姓名<input name="studentName" required th:value="${row['hxx_student_name11']}"></label>
+    <label>性别<select name="gender"><option>男</option><option>女</option></select></label>
+    <label>年龄<input name="age" type="number" required th:value="${row['hxx_age11'] ?: 20}"></label>
+    <label>生源地<select name="regionId"><option th:each="o:${options.regions}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
+    <label>班级<select name="classId"><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}"></option></select></label>
+    <label>电话<input name="phone" th:value="${row['hxx_phone11']}"></label>
+    <label>状态<select name="status"><option>在读</option><option>休学</option><option>毕业</option><option>退学</option></select></label>
+    <label>入学日期<input name="enrollDate" type="date" th:value="${row['hxx_enroll_date11'] ?: '2023-09-01'}"></label>
+    <button type="submit">保存</button>
+</form>
+</main>
+</div>
+</body>
+</html>

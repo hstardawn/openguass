@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>成绩申诉</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="page-hero">
+            <p class="eyebrow">Appeal Review</p>
+            <h1>成绩申诉处理</h1>
+            <p>仅显示当前教师教学任务相关的申诉，表格隐藏申诉主键和成绩记录编号。</p>
+        </section>
+
+        <div class="empty" th:if="${#lists.isEmpty(rows)}">暂无需要处理的成绩申诉</div>
+        <div class="table-wrap" th:if="${!#lists.isEmpty(rows)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>学生</th>
+                    <th>班级</th>
+                    <th>课程</th>
+                    <th>任课教师</th>
+                    <th>当前成绩</th>
+                    <th>申诉理由</th>
+                    <th>状态</th>
+                    <th>申请时间</th>
+                    <th>处理结果</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r:${rows}">
+                    <td th:text="${r['学生姓名']}"></td>
+                    <td th:text="${r['班级']}"></td>
+                    <td th:text="${r['课程名称']}"></td>
+                    <td th:text="${r['任课教师']}"></td>
+                    <td th:text="${r['当前成绩']}"></td>
+                    <td class="text-cell" th:text="${r['申诉理由']}"></td>
+                    <td><span class="status-badge" th:text="${r['申诉状态']}"></span></td>
+                    <td th:text="${r['申请时间']}"></td>
+                    <td class="text-cell" th:text="${r['处理结果']}"></td>
+                    <td>
+                        <form class="inline-form compact-form" method="post" action="/teacher/appeals/handle" th:if="${r['申诉状态'] == '待处理'}">
+                            <input type="hidden" name="appealId" th:value="${r['appealId']}">
+                            <select name="status">
+                                <option>已通过</option>
+                                <option>已驳回</option>
+                            </select>
+                            <input name="result" required placeholder="处理意见">
+                            <button type="submit">提交</button>
+                        </form>
+                        <span th:if="${r['申诉状态'] != '待处理'}">已处理</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

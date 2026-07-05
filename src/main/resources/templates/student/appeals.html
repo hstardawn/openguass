@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>成绩申诉</title><link rel="stylesheet" href="/css/style.css"></head>
+<body><div th:replace="~{fragments/layout :: topbar}"></div><div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<div th:replace="~{fragments/layout :: messages}"></div>
+<section class="page-hero">
+    <p class="eyebrow">My Appeals</p>
+    <h1>成绩申诉</h1>
+    <p>查看本人已提交的成绩申诉处理进度。</p>
+</section>
+<div th:replace="~{fragments/layout :: table(${rows})}"></div>
+</main></div></body>
+</html>

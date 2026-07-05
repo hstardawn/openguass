@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>选课学生</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1>选课学生</h1>
+<p class="lead" th:text="${task['课程名称'] + ' / ' + task['班级'] + ' / ' + task['学期']}">任务</p>
+<table>
+<thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>状态</th><th>平时</th><th>期末</th><th>最终</th><th>等级</th><th>通过</th><th>发布</th><th>操作</th></tr></thead>
+<tbody>
+<tr th:each="r:${rows}">
+    <td th:text="${r['学号']}"></td>
+    <td th:text="${r['姓名']}"></td>
+    <td th:text="${r['班级']}"></td>
+    <td th:text="${r['选课状态']}"></td>
+    <td th:text="${r['平时成绩']}"></td>
+    <td th:text="${r['期末成绩']}"></td>
+    <td th:text="${r['最终成绩']}"></td>
+    <td><span class="status-badge" th:text="${r['等级'] ?: '未录入'}"></span></td>
+    <td><span class="status-badge" th:text="${r['通过情况']}"></span></td>
+    <td><span class="status-badge" th:text="${r['发布状态']}"></span></td>
+    <td class="inline-actions">
+        <a th:if="${r['scoreId'] == null}" th:href="@{'/teacher/score/add/' + ${r['selectionId']}}">录入</a>
+        <a th:if="${r['scoreId'] != null}" th:href="@{'/teacher/score/edit/' + ${r['scoreId']}}">修改</a>
+    </td>
+</tr>
+</tbody>
+</table>
+</main></div>
+</body>
+</html>

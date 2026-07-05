@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title th:text="${title}">教师表单</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1 th:text="${title}">教师表单</h1>
+<form class="form-grid" method="post" th:action="${edit} ? '/admin/teachers/edit' : '/admin/teachers/add'">
+    <label>教师编号<input name="teacherId" required th:readonly="${edit}" th:value="${row['hxx_teacher_id11']}"></label>
+    <label>姓名<input name="teacherName" required th:value="${row['hxx_teacher_name11']}"></label>
+    <label>性别<select name="gender"><option>男</option><option>女</option></select></label>
+    <label>年龄<input name="age" type="number" required th:value="${row['hxx_age11'] ?: 35}"></label>
+    <label>职称<select name="title"><option>助教</option><option>讲师</option><option>副教授</option><option>教授</option></select></label>
+    <label>电话<input name="phone" th:value="${row['hxx_phone11']}"></label>
+    <label>学院<input name="collegeName" required th:value="${row['hxx_college_name11'] ?: '计算机学院'}"></label>
+    <label>状态<select name="status"><option>在职</option><option>离职</option><option>退休</option></select></label>
+    <button type="submit">保存</button>
+</form>
+</main></div>
+</body>
+</html>

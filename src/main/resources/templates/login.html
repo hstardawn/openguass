@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>HuangxxMIS11 登录</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+<main class="login-shell">
+    <section class="login-visual">
+        <div>
+            <p class="eyebrow">Academic Information Platform</p>
+            <h1>高校教务成绩管理系统</h1>
+            <p>围绕学生、教师、课程、成绩、申诉与审计的完整业务流程，提供统一的数据维护和教学质量分析入口。</p>
+        </div>
+        <div class="login-metrics">
+            <span><strong>3</strong>角色权限</span>
+            <span><strong>9</strong>统计过程</span>
+            <span><strong>全链路</strong>审计留痕</span>
+        </div>
+    </section>
+    <section class="login-panel">
+        <div class="login-brand">
+            <span class="brand-mark">H</span>
+            <div>
+                <h1>HuangxxMIS11</h1>
+                <p>登录工作台</p>
+            </div>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <form method="post" action="/login">
+            <label>登录名
+                <input name="loginName" required autofocus placeholder="请输入登录名">
+            </label>
+            <label>密码
+                <input name="password" type="password" required placeholder="请输入密码">
+            </label>
+            <button type="submit">进入系统</button>
+        </form>
+        <section class="account-tip">
+            <strong>演示账号</strong>
+            <span>管理员：admin / 123456</span>
+            <span>教师：t001 / 123456</span>
+            <span>学生：s2023001 / 123456</span>
+        </section>
+    </section>
+</main>
+</body>
+</html>

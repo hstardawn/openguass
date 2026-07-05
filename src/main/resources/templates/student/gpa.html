@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>GPA</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1>GPA 与学分</h1>
+<section class="stats">
+    <article><span>学号</span><strong th:text="${gpa['学号']}"></strong></article>
+    <article><span>姓名</span><strong th:text="${gpa['姓名']}"></strong></article>
+    <article><span>班级</span><strong th:text="${gpa['班级']}"></strong></article>
+    <article><span>已修学分</span><strong th:text="${gpa['已修学分']}"></strong></article>
+    <article><span>GPA</span><strong th:text="${gpa['GPA']}"></strong></article>
+    <article><span>通过课程</span><strong th:text="${gpa['通过课程']}"></strong></article>
+    <article><span>未通过课程</span><strong th:text="${gpa['未通过课程']}"></strong></article>
+</section>
+</main></div>
+</body>
+</html>

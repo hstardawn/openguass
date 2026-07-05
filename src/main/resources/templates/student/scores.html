@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>已发布成绩</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1>已发布成绩</h1>
+<table th:if="${!#lists.isEmpty(rows)}">
+<thead><tr><th>课程</th><th>教师</th><th>学期</th><th>平时</th><th>期末</th><th>最终</th><th>等级</th><th>学分</th><th>操作</th></tr></thead>
+<tbody>
+<tr th:each="r:${rows}">
+    <td th:text="${r['课程名称']}"></td>
+    <td th:text="${r['任课教师']}"></td>
+    <td th:text="${r['学期']}"></td>
+    <td th:text="${r['平时成绩']}"></td>
+    <td th:text="${r['期末成绩']}"></td>
+    <td th:text="${r['总评成绩']}"></td>
+    <td><span class="status-badge" th:text="${r['等级']}"></span></td>
+    <td th:text="${r['学分']}"></td>
+    <td><a th:href="@{'/student/appeals/add/' + ${r['scoreId']}}">提交申诉</a></td>
+</tr>
+</tbody>
+</table>
+<div class="empty" th:if="${#lists.isEmpty(rows)}">暂无已发布成绩</div>
+</main></div>
+</body>
+</html>

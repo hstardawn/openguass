@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>提交申诉</title><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell"><div th:replace="~{fragments/layout :: sidebar}"></div>
+<main class="content">
+<h1>提交成绩申诉</h1>
+<section class="summary">
+    <span>课程：<strong th:text="${score['hxx_course_name11']}"></strong></span>
+    <span>最终成绩：<strong th:text="${score['hxx_final_score11']}"></strong></span>
+    <span>等级：<strong th:text="${score['hxx_grade_level11']}"></strong></span>
+</section>
+<form class="form-grid" method="post" action="/student/appeals/add">
+    <input type="hidden" name="scoreId" th:value="${score['hxx_score_id11']}">
+    <label class="wide">申诉原因<textarea name="reason" required></textarea></label>
+    <button type="submit">提交申诉</button>
+</form>
+</main></div>
+</body>
+</html>

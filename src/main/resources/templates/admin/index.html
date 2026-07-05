@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员首页</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar}"></div>
+<div class="shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="page-hero">
+            <div>
+                <p class="eyebrow">Academic Operations</p>
+                <h1>管理员工作台</h1>
+                <p>集中查看基础数据、成绩状态、申诉处理和审计留痕。</p>
+            </div>
+        </section>
+        <section class="stats">
+            <article th:each="entry : ${dashboard.entrySet()}">
+                <span th:text="${entry.key}">指标</span>
+                <strong th:text="${entry.value}">0</strong>
+            </article>
+        </section>
+        <section class="overview-grid">
+            <article class="panel">
+                <h2>常用操作</h2>
+                <div class="quick-actions">
+                    <a class="button" href="/admin/students/import">一键导入学生</a>
+                    <a class="button secondary" href="/admin/tasks/add">新建教学任务</a>
+                    <a class="button secondary" href="/admin/stat/rank">查看成绩排名</a>
+                </div>
+            </article>
+            <article class="panel">
+                <h2>数据治理重点</h2>
+                <div class="insight-list">
+                    <span>排名按教学任务、班级、专业年级隔离，避免跨年级混排。</span>
+                    <span>成绩审计与操作日志隐藏内部主键，只展示业务语义。</span>
+                    <span>学生、教师、管理员菜单按角色分离，降低误操作风险。</span>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+</body>
+</html>

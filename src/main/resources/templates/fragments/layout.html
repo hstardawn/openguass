@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="topbar" class="topbar">
+    <div class="brand">
+        <span class="brand-mark">H</span>
+        <span>
+            <strong>HuangxxMIS11</strong>
+            <small>高校教务成绩管理系统</small>
+        </span>
+    </div>
+    <div class="userbar" th:if="${loginUser != null}">
+        <span class="user-avatar" th:text="${#strings.substring(loginUser.displayName(),0,1)}">用</span>
+        <span class="user-meta">
+            <strong th:text="${loginUser.displayName()}">用户</strong>
+            <small th:text="${loginUser.role().dbValue()}">角色</small>
+        </span>
+        <a class="logout-link" href="/logout">退出登录</a>
+    </div>
+    <script src="/js/main.js" defer></script>
+</header>
+
+<nav th:fragment="sidebar" class="sidebar" th:if="${loginUser != null}">
+    <div class="side-title">工作区</div>
+    <div th:if="${loginUser.role().name() == 'ADMIN'}">
+        <div class="nav-section">
+            <span>总览</span>
+            <a href="/admin/index" data-nav>首页</a>
+        </div>
+        <div class="nav-section">
+            <span>基础数据</span>
+            <a href="/admin/students" data-nav>学生</a>
+            <a href="/admin/teachers" data-nav>教师</a>
+            <a href="/admin/courses" data-nav>课程</a>
+            <a href="/admin/majors" data-nav>专业</a>
+            <a href="/admin/classes" data-nav>班级</a>
+            <a href="/admin/tasks" data-nav>教学任务</a>
+        </div>
+        <div class="nav-section">
+            <span>分析与审计</span>
+            <a href="/admin/stat/course" data-nav>课程统计</a>
+            <a href="/admin/stat/class-credit" data-nav>学分统计</a>
+            <a href="/admin/stat/region" data-nav>生源地</a>
+            <a href="/admin/stat/rank" data-nav>成绩排名</a>
+            <a href="/admin/audit/score" data-nav>成绩审计</a>
+            <a href="/admin/logs" data-nav>操作日志</a>
+        </div>
+    </div>
+    <div th:if="${loginUser.role().name() == 'TEACHER'}">
+        <div class="nav-section">
+            <span>教学工作</span>
+            <a href="/teacher/index" data-nav>首页</a>
+            <a href="/teacher/tasks" data-nav>我的任务</a>
+            <a href="/teacher/appeals" data-nav>成绩申诉</a>
+        </div>
+    </div>
+    <div th:if="${loginUser.role().name() == 'STUDENT'}">
+        <div class="nav-section">
+            <span>学习中心</span>
+            <a href="/student/index" data-nav>首页</a>
+            <a href="/student/profile" data-nav>个人信息</a>
+            <a href="/student/selections" data-nav>已选课程</a>
+            <a href="/student/scores" data-nav>已发布成绩</a>
+            <a href="/student/gpa" data-nav>GPA</a>
+            <a href="/student/appeals" data-nav>成绩申诉</a>
+        </div>
+    </div>
+</nav>
+
+<div th:fragment="messages">
+    <div class="alert success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert error" th:if="${error}" th:text="${error}"></div>
+</div>
+
+<div th:fragment="table(rows)" class="data-card">
+    <div class="table-toolbar" th:if="${!#lists.isEmpty(rows)}">
+        <span>数据列表</span>
+        <small th:text="${#lists.size(rows)} + ' 条记录'">0 条记录</small>
+    </div>
+    <div class="empty" th:if="${#lists.isEmpty(rows)}">
+        <strong>暂无数据</strong>
+        <span>当前筛选条件下没有可展示的记录。</span>
+    </div>
+    <div class="table-wrap" th:if="${!#lists.isEmpty(rows)}">
+        <table>
+            <thead>
+            <tr>
+                <th th:each="entry : ${rows[0].entrySet()}"
+                    th:if="${!#strings.endsWith(entry.key, 'Id')}"
+                    th:text="${entry.key}">字段</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${rows}">
+                <td th:each="entry : ${row.entrySet()}"
+                    th:if="${!#strings.endsWith(entry.key, 'Id')}"
+                    th:classappend="${#strings.contains(entry.key, '状态') || #strings.contains(entry.key, '结果') || #strings.contains(entry.key, '等级')} ? 'status-cell' : (${#strings.contains(entry.key, '原因') || #strings.contains(entry.key, '描述') || #strings.contains(entry.key, '业务对象')} ? 'text-cell' : '')">
+                    <span th:if="${#strings.contains(entry.key, '状态') || #strings.contains(entry.key, '结果') || #strings.contains(entry.key, '等级')}" class="status-badge" th:text="${entry.value}">值</span>
+                    <span th:unless="${#strings.contains(entry.key, '状态') || #strings.contains(entry.key, '结果') || #strings.contains(entry.key, '等级')}" th:text="${entry.value}">值</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
