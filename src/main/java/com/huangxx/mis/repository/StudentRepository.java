@@ -39,16 +39,55 @@ public class StudentRepository {
 
     public List<Map<String, Object>> selections(String studentId) {
         return jdbcTemplate.queryForList("""
-                SELECT c.hxx_course_name11 AS 课程名称,
+                SELECT sel.hxx_selection_id11 AS selectionId,
+                       c.hxx_course_name11 AS 课程名称,
                        tea.hxx_teacher_name11 AS 任课教师, term.hxx_school_year11 || ' ' || term.hxx_semester11 AS 学期,
+                       task.hxx_teaching_place11 AS 上课地点,
                        sel.hxx_selection_status11 AS 选课状态,
                        CASE WHEN task.hxx_score_publish_flag11 = 'Y' THEN '已发布' ELSE '未发布' END AS 成绩发布状态
                   FROM Huangxx_CourseSelection11 sel
                   JOIN Huangxx_TeachingTask11 task ON task.hxx_task_id11 = sel.hxx_task_id11
                   JOIN Huangxx_Course11 c ON c.hxx_course_id11 = task.hxx_course_id11
-                  JOIN Huangxx_Teacher11 tea ON tea.hxx_teacher_id11 = task.hxx_teacher_id11
-                  JOIN Huangxx_Term11 term ON term.hxx_term_id11 = task.hxx_term_id11
+                 JOIN Huangxx_Teacher11 tea ON tea.hxx_teacher_id11 = task.hxx_teacher_id11
+                 JOIN Huangxx_Term11 term ON term.hxx_term_id11 = task.hxx_term_id11
                  WHERE sel.hxx_student_id11 = ?
+                   AND sel.hxx_selection_status11 <> '退选'
+                 ORDER BY term.hxx_school_year11 DESC, c.hxx_course_name11
+                """, studentId);
+    }
+
+    public List<Map<String, Object>> availableCourses(String studentId) {
+        return jdbcTemplate.queryForList("""
+                SELECT task.hxx_task_id11 AS taskId,
+                       sel.hxx_selection_id11 AS selectionId,
+                       c.hxx_course_name11 AS 课程名称,
+                       c.hxx_credit11 AS 学分,
+                       tea.hxx_teacher_name11 AS 任课教师,
+                       cls.hxx_class_name11 AS 班级,
+                       term.hxx_school_year11 || ' ' || term.hxx_semester11 AS 学期,
+                       task.hxx_teaching_place11 AS 上课地点,
+                       (SELECT count(*)
+                          FROM Huangxx_CourseSelection11 active_sel
+                         WHERE active_sel.hxx_task_id11 = task.hxx_task_id11
+                           AND active_sel.hxx_selection_status11 <> '退选') || '/' || task.hxx_max_count11 AS 人数,
+                       task.hxx_task_status11 AS 开课状态,
+                       CASE
+                           WHEN task.hxx_task_status11 <> '开课中' THEN '暂未开放'
+                           WHEN sel.hxx_selection_status11 IS NULL THEN '可选'
+                           WHEN sel.hxx_selection_status11 = '退选' THEN '可重新选择'
+                           ELSE '已选'
+                       END AS 选课状态
+                  FROM Huangxx_TeachingTask11 task
+                  JOIN Huangxx_Course11 c ON c.hxx_course_id11 = task.hxx_course_id11
+                  JOIN Huangxx_Teacher11 tea ON tea.hxx_teacher_id11 = task.hxx_teacher_id11
+                  JOIN Huangxx_Class11 cls ON cls.hxx_class_id11 = task.hxx_class_id11
+                  JOIN Huangxx_Term11 term ON term.hxx_term_id11 = task.hxx_term_id11
+                  JOIN Huangxx_Student11 stu ON stu.hxx_class_id11 = task.hxx_class_id11
+                  LEFT JOIN Huangxx_CourseSelection11 sel
+                    ON sel.hxx_task_id11 = task.hxx_task_id11
+                   AND sel.hxx_student_id11 = stu.hxx_student_id11
+                 WHERE stu.hxx_student_id11 = ?
+                   AND task.hxx_task_status11 IN ('未开始', '开课中')
                  ORDER BY term.hxx_school_year11 DESC, c.hxx_course_name11
                 """, studentId);
     }
@@ -122,6 +161,71 @@ public class StudentRepository {
                    AND hxx_appeal_status11 = '待处理'
                 """, Integer.class, scoreId, studentId);
         return count != null && count > 0;
+    }
+
+    public boolean taskExistsForStudentClass(String taskId, String studentId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*)
+                  FROM Huangxx_TeachingTask11 task
+                  JOIN Huangxx_Student11 stu ON stu.hxx_class_id11 = task.hxx_class_id11
+                 WHERE task.hxx_task_id11 = ?
+                   AND stu.hxx_student_id11 = ?
+                   AND task.hxx_task_status11 = '开课中'
+                """, Integer.class, taskId, studentId);
+        return count != null && count > 0;
+    }
+
+    public boolean hasActiveSelection(String taskId, String studentId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM Huangxx_CourseSelection11
+                 WHERE hxx_task_id11 = ?
+                   AND hxx_student_id11 = ?
+                   AND hxx_selection_status11 <> '退选'
+                """, Integer.class, taskId, studentId);
+        return count != null && count > 0;
+    }
+
+    public boolean selectionHasScore(String selectionId, String studentId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*)
+                  FROM Huangxx_CourseSelection11 sel
+                  JOIN Huangxx_Score11 sc ON sc.hxx_selection_id11 = sel.hxx_selection_id11
+                 WHERE sel.hxx_selection_id11 = ?
+                   AND sel.hxx_student_id11 = ?
+                   AND sc.hxx_score_status11 <> '作废'
+                """, Integer.class, selectionId, studentId);
+        return count != null && count > 0;
+    }
+
+    public void selectCourse(String selectionId, String studentId, String taskId) {
+        int updated = jdbcTemplate.update("""
+                UPDATE Huangxx_CourseSelection11
+                   SET hxx_selection_status11 = '已选',
+                       hxx_select_time11 = current_timestamp
+                 WHERE hxx_student_id11 = ?
+                   AND hxx_task_id11 = ?
+                   AND hxx_selection_status11 = '退选'
+                """, studentId, taskId);
+        if (updated == 0) {
+            jdbcTemplate.update("""
+                    INSERT INTO Huangxx_CourseSelection11
+                    (hxx_selection_id11, hxx_student_id11, hxx_task_id11, hxx_selection_status11)
+                    VALUES (?, ?, ?, '已选')
+                    """, selectionId, studentId, taskId);
+        }
+    }
+
+    public void dropSelection(String selectionId, String studentId) {
+        int updated = jdbcTemplate.update("""
+                UPDATE Huangxx_CourseSelection11
+                   SET hxx_selection_status11 = '退选'
+                 WHERE hxx_selection_id11 = ?
+                   AND hxx_student_id11 = ?
+                   AND hxx_selection_status11 = '已选'
+                """, selectionId, studentId);
+        if (updated == 0) {
+            throw new IllegalArgumentException("选课记录不存在，或当前状态不允许退选");
+        }
     }
 
     public void addAppeal(String appealId, String scoreId, String studentId, String reason) {

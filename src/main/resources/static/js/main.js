@@ -16,4 +16,30 @@ document.addEventListener("DOMContentLoaded", function () {
             link.classList.add("active");
         }
     });
+
+    document.querySelectorAll("[data-class-filter]").forEach(function (majorSelect) {
+        const scope = majorSelect.closest("form") || document;
+        const classSelect = scope.querySelector("[data-class-select]");
+        if (!classSelect) {
+            return;
+        }
+        const applyFilter = function () {
+            const major = majorSelect.value;
+            let selectedVisible = false;
+            classSelect.querySelectorAll("option").forEach(function (option) {
+                const optionMajor = option.getAttribute("data-major");
+                const visible = !option.value || !major || optionMajor === major;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                if (visible && option.selected) {
+                    selectedVisible = true;
+                }
+            });
+            if (!selectedVisible) {
+                classSelect.value = "";
+            }
+        };
+        majorSelect.addEventListener("change", applyFilter);
+        applyFilter();
+    });
 });

@@ -30,6 +30,10 @@ public class StudentService {
         return studentRepository.selections(studentId);
     }
 
+    public List<Map<String, Object>> availableCourses(String studentId) {
+        return studentRepository.availableCourses(studentId);
+    }
+
     public List<Map<String, Object>> scores(String studentId) {
         return studentRepository.publishedScores(studentId);
     }
@@ -54,5 +58,30 @@ public class StudentService {
         String appealId = "AP-JAVA-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         studentRepository.addAppeal(appealId, scoreId, user.refId(), reason);
         operationLogRepository.log(user, "提交申诉", scoreId, reason, "成功");
+    }
+
+    @Transactional
+    public void selectCourse(SessionUser user, String taskId) {
+        if (taskId == null || taskId.isBlank()) {
+            throw new IllegalArgumentException("请选择教学任务");
+        }
+        if (!studentRepository.taskExistsForStudentClass(taskId, user.refId())) {
+            throw new IllegalArgumentException("该课程不属于当前班级或不在可选状态");
+        }
+        if (studentRepository.hasActiveSelection(taskId, user.refId())) {
+            throw new IllegalArgumentException("该课程已经选过，不能重复选课");
+        }
+        String selectionId = "SEL-JAVA-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        studentRepository.selectCourse(selectionId, user.refId(), taskId);
+        operationLogRepository.log(user, "学生选课", taskId, "学生选择教学任务", "成功");
+    }
+
+    @Transactional
+    public void dropSelection(SessionUser user, String selectionId) {
+        if (studentRepository.selectionHasScore(selectionId, user.refId())) {
+            throw new IllegalArgumentException("该课程已有成绩记录，不能退选");
+        }
+        studentRepository.dropSelection(selectionId, user.refId());
+        operationLogRepository.log(user, "学生退选", selectionId, "学生退选课程", "成功");
     }
 }

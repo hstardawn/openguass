@@ -45,6 +45,9 @@ public class TeacherService {
 
     @Transactional
     public void addScore(SessionUser user, String selectionId, BigDecimal usualScore, BigDecimal examScore) {
+        if (!teacherRepository.selectionCanReceiveScore(selectionId, user.refId())) {
+            throw new IllegalArgumentException("只有已结束教学任务中的有效选课记录才能录入成绩");
+        }
         String scoreId = "SC-JAVA-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         teacherRepository.addScore(scoreId, selectionId, usualScore, examScore, user.refId());
         operationLogRepository.log(user, "成绩录入", selectionId, "教师录入学生成绩", "成功");
@@ -55,6 +58,9 @@ public class TeacherService {
         if (reason == null || reason.isBlank()) {
             throw new IllegalArgumentException("成绩修改必须填写修改原因");
         }
+        if (!teacherRepository.scoreCanBeEdited(scoreId, user.refId())) {
+            throw new IllegalArgumentException("只有已结束教学任务的成绩才能修改");
+        }
         teacherRepository.editScore(scoreId, usualScore, examScore, user.refId(), reason);
         operationLogRepository.log(user, "成绩修改", scoreId, reason, "成功");
     }
@@ -63,6 +69,9 @@ public class TeacherService {
     public void publish(SessionUser user, String taskId) {
         if (!teacherRepository.ownsTask(taskId, user.refId())) {
             throw new IllegalArgumentException("教师只能发布自己的教学任务成绩");
+        }
+        if (!teacherRepository.taskEnded(taskId, user.refId())) {
+            throw new IllegalArgumentException("教学任务结束后才能发布成绩");
         }
         teacherRepository.publishTaskScores(taskId, user.refId());
         operationLogRepository.log(user, "成绩发布", taskId, "教师发布教学任务成绩", "成功");

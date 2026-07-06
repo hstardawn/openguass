@@ -47,6 +47,20 @@ public class LoginRepository {
         jdbcTemplate.update("UPDATE Huangxx_SystemUser11 SET hxx_last_login_time11 = current_timestamp WHERE hxx_user_id11 = ?", userId);
     }
 
+    public boolean passwordMatches(String userId, String password) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM Huangxx_SystemUser11
+                 WHERE hxx_user_id11 = ?
+                   AND hxx_password11 = ?
+                   AND hxx_user_status11 = '正常'
+                """, Integer.class, userId, password);
+        return count != null && count > 0;
+    }
+
+    public void changePassword(String userId, String newPassword) {
+        jdbcTemplate.update("UPDATE Huangxx_SystemUser11 SET hxx_password11 = ? WHERE hxx_user_id11 = ?", newPassword, userId);
+    }
+
     private String loadDisplayName(Role role, String refId, String loginName) {
         if (refId == null || refId.isBlank()) {
             return loginName;

@@ -8,8 +8,8 @@ import java.util.Map;
 public final class StudentImportParser {
 
     private static final List<String> FIELDS = List.of(
-            "studentId", "studentName", "gender", "age", "regionId",
-            "classId", "phone", "status", "enrollDate"
+            "studentId", "studentName", "gender", "age", "className",
+            "regionName", "phone", "status", "enrollDate"
     );
 
     private StudentImportParser() {

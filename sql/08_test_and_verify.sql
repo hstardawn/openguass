@@ -26,6 +26,10 @@ INSERT INTO Huangxx_CourseSelection11
 (hxx_selection_id11, hxx_student_id11, hxx_task_id11, hxx_selection_status11)
 VALUES ('SEL-DEMO-001', 'S2023016', 'TASK003', '已选');
 
+UPDATE Huangxx_TeachingTask11
+   SET hxx_task_status11 = '已结束'
+ WHERE hxx_task_id11 = 'TASK003';
+
 INSERT INTO Huangxx_Score11
 (hxx_score_id11, hxx_selection_id11, hxx_usual_score11, hxx_exam_score11, hxx_input_teacher11, hxx_publish_flag11)
 VALUES ('SC-DEMO-001', 'SEL-DEMO-001', 88, 92, 'T003', 'N');
@@ -51,6 +55,10 @@ UPDATE Huangxx_Score11
 SELECT * FROM Huangxx_ScoreAudit11
  WHERE hxx_score_id11 = 'SC-DEMO-001'
  ORDER BY hxx_modify_time11 DESC;
+
+UPDATE Huangxx_TeachingTask11
+   SET hxx_task_status11 = '开课中'
+ WHERE hxx_task_id11 = 'TASK003';
 
 -- 5. 触发器验证：重复选课会被唯一约束阻止，容量检查可通过插入满员任务验证。
 -- 下面语句用于答辩现场单独执行，预期失败：

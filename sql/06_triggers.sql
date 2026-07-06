@@ -3,6 +3,7 @@
 DROP TRIGGER IF EXISTS Huangxx_TrigSetScoreComputed11 ON Huangxx_Score11;
 DROP TRIGGER IF EXISTS Huangxx_TrigRecalculateCreditGpa11 ON Huangxx_Score11;
 DROP TRIGGER IF EXISTS Huangxx_TrigScoreAudit11 ON Huangxx_Score11;
+DROP TRIGGER IF EXISTS Huangxx_TrigScoreMarkSelectionCompleted11 ON Huangxx_Score11;
 DROP TRIGGER IF EXISTS Huangxx_TrigCheckSelection11 ON Huangxx_CourseSelection11;
 DROP TRIGGER IF EXISTS Huangxx_TrigSelectionCount11 ON Huangxx_CourseSelection11;
 DROP TRIGGER IF EXISTS Huangxx_TrigAppealHandleTime11 ON Huangxx_ScoreAppeal11;
@@ -13,6 +14,7 @@ DROP TRIGGER IF EXISTS Huangxx_TrigTeacherDefaultUser11 ON Huangxx_Teacher11;
 DROP FUNCTION IF EXISTS Huangxx_FuncSetScoreComputed11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncRecalculateCreditGpa11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncScoreAudit11() CASCADE;
+DROP FUNCTION IF EXISTS Huangxx_FuncScoreMarkSelectionCompleted11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncCheckSelection11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncSelectionCount11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncAppealHandleTime11() CASCADE;
@@ -20,7 +22,6 @@ DROP FUNCTION IF EXISTS Huangxx_FuncAppealAudit11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncStudentDefaultUser11() CASCADE;
 DROP FUNCTION IF EXISTS Huangxx_FuncTeacherDefaultUser11() CASCADE;
 
--- 课程设计演示环境保持明文密码策略；新增学生/教师如果没有显式创建登录用户，
 -- 由数据库触发器自动写入基础密码 123456，后续可在应用层修改。
 CREATE OR REPLACE FUNCTION Huangxx_FuncStudentDefaultUser11()
 RETURNS trigger AS $$
@@ -62,9 +63,11 @@ CREATE OR REPLACE FUNCTION Huangxx_FuncSetScoreComputed11()
 RETURNS trigger AS $$
 DECLARE
     v_task_teacher varchar(20);
+    v_task_status varchar(20);
+    v_selection_status varchar(20);
 BEGIN
-    SELECT task.hxx_teacher_id11
-      INTO v_task_teacher
+    SELECT task.hxx_teacher_id11, task.hxx_task_status11, sel.hxx_selection_status11
+      INTO v_task_teacher, v_task_status, v_selection_status
       FROM Huangxx_CourseSelection11 sel
       JOIN Huangxx_TeachingTask11 task ON task.hxx_task_id11 = sel.hxx_task_id11
      WHERE sel.hxx_selection_id11 = NEW.hxx_selection_id11;
@@ -75,6 +78,14 @@ BEGIN
 
     IF NEW.hxx_input_teacher11 <> v_task_teacher THEN
         RAISE EXCEPTION '教师 % 不能录入非本人教学任务成绩', NEW.hxx_input_teacher11;
+    END IF;
+
+    IF v_task_status <> '已结束' THEN
+        RAISE EXCEPTION '教学任务状态为 %，只有已结束课程才能录入或修改成绩', v_task_status;
+    END IF;
+
+    IF v_selection_status = '退选' THEN
+        RAISE EXCEPTION '退选记录不能录入成绩';
     END IF;
 
     IF TG_OP = 'UPDATE'
@@ -197,6 +208,21 @@ CREATE TRIGGER Huangxx_TrigScoreAudit11
 AFTER UPDATE ON Huangxx_Score11
 FOR EACH ROW EXECUTE PROCEDURE Huangxx_FuncScoreAudit11();
 
+CREATE OR REPLACE FUNCTION Huangxx_FuncScoreMarkSelectionCompleted11()
+RETURNS trigger AS $$
+BEGIN
+    UPDATE Huangxx_CourseSelection11
+       SET hxx_selection_status11 = '完成'
+     WHERE hxx_selection_id11 = NEW.hxx_selection_id11
+       AND hxx_selection_status11 = '已选';
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER Huangxx_TrigScoreMarkSelectionCompleted11
+AFTER INSERT ON Huangxx_Score11
+FOR EACH ROW EXECUTE PROCEDURE Huangxx_FuncScoreMarkSelectionCompleted11();
+
 CREATE OR REPLACE FUNCTION Huangxx_FuncCheckSelection11()
 RETURNS trigger AS $$
 DECLARE
@@ -213,7 +239,8 @@ BEGIN
         RAISE EXCEPTION '教学任务不存在';
     END IF;
 
-    IF v_task_status NOT IN ('未开始', '开课中') AND NEW.hxx_selection_status11 <> '退选' THEN
+    IF v_task_status <> '开课中'
+       AND NEW.hxx_selection_status11 NOT IN ('退选', '完成') THEN
         RAISE EXCEPTION '教学任务状态为 %, 不允许选课', v_task_status;
     END IF;
 

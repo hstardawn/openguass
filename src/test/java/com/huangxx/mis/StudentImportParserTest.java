@@ -11,10 +11,10 @@ class StudentImportParserTest {
     @Test
     void parsesHeaderAndStudentRows() {
         String csv = """
-                studentId,studentName,gender,age,regionId,classId,phone,status,enrollDate
-                S2023998,测试一,男,20,R-XH,CL-CS2301,13899990001,在读,2023-09-01
+                学号,姓名,性别,年龄,班级,生源地,手机号,学籍状态,入学日期
+                S2023998,测试一,男,20,计科2301,西湖区,13899990001,在读,2023-09-01
 
-                S2023999,测试二,女,19,R-BL,CL-CS2302,13899990002,在读,2023-09-01
+                S2023999,测试二,女,19,软工2301,北仑区,13899990002,在读,2023-09-01
                 """;
 
         var rows = StudentImportParser.parse(csv);
@@ -23,16 +23,18 @@ class StudentImportParserTest {
         assertThat(rows.get(0))
                 .containsEntry("studentId", "S2023998")
                 .containsEntry("studentName", "测试一")
-                .containsEntry("classId", "CL-CS2301");
+                .containsEntry("className", "计科2301");
         assertThat(rows.get(1))
                 .containsEntry("gender", "女")
-                .containsEntry("regionId", "R-BL");
+                .containsEntry("regionName", "北仑区")
+                .doesNotContainKey("gpa")
+                .doesNotContainKey("totalCredit");
     }
 
     @Test
     void rejectsRowsWithWrongColumnCount() {
         String csv = """
-                studentId,studentName,gender,age,regionId,classId,phone,status,enrollDate
+                学号,姓名,性别,年龄,班级,生源地,手机号,学籍状态,入学日期
                 S2023998,测试一,男
                 """;
 

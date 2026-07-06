@@ -28,4 +28,16 @@ public class LoginService {
         }
         return user;
     }
+
+    @Transactional
+    public void changePassword(SessionUser user, String oldPassword, String newPassword) {
+        if (newPassword == null || newPassword.isBlank() || newPassword.length() < 6) {
+            throw new IllegalArgumentException("新密码至少 6 位");
+        }
+        if (!loginRepository.passwordMatches(user.userId(), oldPassword)) {
+            throw new IllegalArgumentException("原密码不正确");
+        }
+        loginRepository.changePassword(user.userId(), newPassword);
+        operationLogRepository.log(user, "修改密码", "Huangxx_SystemUser11", "用户修改本人密码", "成功");
+    }
 }

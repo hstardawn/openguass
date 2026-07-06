@@ -57,7 +57,7 @@ SELECT
     term.hxx_semester11,
     task.hxx_teaching_place11,
     task.hxx_max_count11,
-    task.hxx_current_count11,
+    CAST(count(sel.hxx_selection_id11) FILTER (WHERE sel.hxx_selection_status11 <> '退选') AS int) AS hxx_current_count11,
     task.hxx_task_status11,
     task.hxx_score_publish_flag11,
     count(sc.hxx_score_id11) AS hxx_score_count11
@@ -70,7 +70,7 @@ LEFT JOIN Huangxx_CourseSelection11 sel ON sel.hxx_task_id11 = task.hxx_task_id1
 LEFT JOIN Huangxx_Score11 sc ON sc.hxx_selection_id11 = sel.hxx_selection_id11
 GROUP BY task.hxx_task_id11, task.hxx_teacher_id11, tea.hxx_teacher_name11, c.hxx_course_name11,
          cls.hxx_class_name11, term.hxx_school_year11, term.hxx_semester11, task.hxx_teaching_place11,
-         task.hxx_max_count11, task.hxx_current_count11, task.hxx_task_status11, task.hxx_score_publish_flag11;
+         task.hxx_max_count11, task.hxx_task_status11, task.hxx_score_publish_flag11;
 
 CREATE OR REPLACE VIEW Huangxx_ViewClassCourse11 AS
 SELECT
@@ -145,6 +145,16 @@ LEFT JOIN Huangxx_Score11 sc ON sc.hxx_selection_id11 = sel.hxx_selection_id11
 GROUP BY s.hxx_student_id11, s.hxx_student_name11, cls.hxx_class_name11, s.hxx_total_credit11, s.hxx_gpa11;
 
 CREATE OR REPLACE VIEW Huangxx_ViewRegionStudentStat11 AS
+WITH RECURSIVE region_tree AS (
+    SELECT hxx_region_id11 AS ancestor_id,
+           hxx_region_id11 AS child_id
+    FROM Huangxx_Region11
+    UNION ALL
+    SELECT rt.ancestor_id,
+           child.hxx_region_id11
+    FROM region_tree rt
+    JOIN Huangxx_Region11 child ON child.hxx_parent_region_id11 = rt.child_id
+)
 SELECT
     r.hxx_region_id11,
     r.hxx_region_name11,
@@ -153,7 +163,8 @@ SELECT
     count(s.hxx_student_id11) AS hxx_student_count11
 FROM Huangxx_Region11 r
 LEFT JOIN Huangxx_Region11 parent ON parent.hxx_region_id11 = r.hxx_parent_region_id11
-LEFT JOIN Huangxx_Student11 s ON s.hxx_region_id11 = r.hxx_region_id11
+LEFT JOIN region_tree rt ON rt.ancestor_id = r.hxx_region_id11
+LEFT JOIN Huangxx_Student11 s ON s.hxx_region_id11 = rt.child_id
 GROUP BY r.hxx_region_id11, r.hxx_region_name11, r.hxx_region_level11, parent.hxx_region_name11;
 
 CREATE OR REPLACE VIEW Huangxx_ViewScoreAppeal11 AS

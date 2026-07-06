@@ -5,12 +5,17 @@ import com.huangxx.mis.service.AdminService;
 import com.huangxx.mis.view.TablePage;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
@@ -33,7 +38,7 @@ public class AdminController {
 
     @GetMapping({
             "/admin/students", "/admin/teachers", "/admin/courses", "/admin/majors",
-            "/admin/classes", "/admin/tasks", "/admin/stat/course", "/admin/stat/class-credit",
+            "/admin/classes", "/admin/regions", "/admin/tasks", "/admin/stat/course", "/admin/stat/class-credit",
             "/admin/stat/region", "/admin/audit/score", "/admin/logs"
     })
     public String table(Model model, HttpSession session, jakarta.servlet.http.HttpServletRequest request) {
@@ -97,13 +102,27 @@ public class AdminController {
     }
 
     @PostMapping("/admin/students/import")
-    public String doImportStudents(@RequestParam String importText, RedirectAttributes attributes) {
+    public String doImportStudents(@RequestParam(required = false) MultipartFile studentFile,
+                                   @RequestParam(required = false) String importText,
+                                   RedirectAttributes attributes) {
         try {
-            int count = adminService.importStudents(importText);
+            int count = adminService.importStudents(studentFile, importText);
             return ControllerSupport.redirectWithSuccess(attributes, "/admin/students", "成功导入 " + count + " 名学生");
         } catch (DataAccessException | IllegalArgumentException ex) {
             return ControllerSupport.redirectWithError(attributes, "/admin/students/import", ControllerSupport.friendlyError("导入", ex));
         }
+    }
+
+    @GetMapping("/admin/stat/course/export")
+    public ResponseEntity<byte[]> exportCourseStats() {
+        byte[] bytes = adminService.exportCourseStatsExcel();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename("course-score-stat.xlsx", java.nio.charset.StandardCharsets.UTF_8)
+                        .build()
+                        .toString())
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(bytes);
     }
 
     @GetMapping("/admin/students/edit/{id}")

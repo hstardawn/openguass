@@ -20,6 +20,7 @@
             <div class="actions">
                 <a class="button" th:if="${pageKey == 'students'}" href="/admin/students/add">新增学生</a>
                 <a class="button secondary" th:if="${pageKey == 'students'}" href="/admin/students/import">一键导入</a>
+                <a class="button secondary" th:if="${pageKey == 'stat-course'}" href="/admin/stat/course/export">导出 Excel</a>
                 <a class="button" th:if="${pageKey == 'teachers'}" href="/admin/teachers/add">新增教师</a>
                 <a class="button" th:if="${pageKey == 'courses'}" href="/admin/courses/add">新增课程</a>
                 <a class="button" th:if="${pageKey == 'majors'}" href="/admin/majors/add">新增专业</a>
@@ -32,13 +33,30 @@
             <form method="get" class="filter-form">
                 <label th:if="${pageKey == 'students' || pageKey == 'teachers' || pageKey == 'courses' || pageKey == 'majors' || pageKey == 'classes'}">
                     关键词
-                    <input name="keyword" th:value="${filters['keyword']}" th:placeholder="${pageKey == 'students'} ? '学号或姓名' : '输入名称查询'">
+                    <input name="keyword" th:value="${filters['keyword']}" th:placeholder="${pageKey == 'students'} ? '学号或姓名' : (${pageKey == 'teachers'} ? '工号或姓名' : (${pageKey == 'courses'} ? '课程名称' : '输入名称查询'))">
+                </label>
+                <label th:if="${pageKey == 'students'}">
+                    专业
+                    <select name="majorKey" data-class-filter>
+                        <option value="">全部专业</option>
+                        <option th:each="o : ${options.majors}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['majorId']}"></option>
+                    </select>
                 </label>
                 <label th:if="${pageKey == 'students' || pageKey == 'classes' || pageKey == 'tasks'}">
                     班级
-                    <select name="classKey">
+                    <select name="classKey" data-class-select>
                         <option value="">全部班级</option>
-                        <option th:each="o : ${options.classes}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['classId']}"></option>
+                        <option th:each="o : ${options.classes}" th:value="${o.id}" th:text="${o.name}" th:attr="data-major=${o.majorId}" th:selected="${o.id == filters['classId']}"></option>
+                    </select>
+                </label>
+                <label th:if="${pageKey == 'students'}">
+                    学籍状态
+                    <select name="status">
+                        <option value="">全部状态</option>
+                        <option value="在读" th:selected="${filters['status'] == '在读'}">在读</option>
+                        <option value="休学" th:selected="${filters['status'] == '休学'}">休学</option>
+                        <option value="毕业" th:selected="${filters['status'] == '毕业'}">毕业</option>
+                        <option value="退学" th:selected="${filters['status'] == '退学'}">退学</option>
                     </select>
                 </label>
                 <label th:if="${pageKey == 'students'}">
@@ -47,6 +65,10 @@
                         <option value="">全部地区</option>
                         <option th:each="o : ${options.regions}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == filters['regionId']}"></option>
                     </select>
+                </label>
+                <label th:if="${pageKey == 'teachers'}">
+                    学院
+                    <input name="collegeName" th:value="${filters['collegeName']}" placeholder="输入学院名称">
                 </label>
                 <label th:if="${pageKey == 'teachers'}">
                     职称
@@ -67,11 +89,12 @@
                     </select>
                 </label>
                 <label th:if="${pageKey == 'courses'}">
-                    考核方式
-                    <select name="examType">
-                        <option value="">全部方式</option>
-                        <option value="考试" th:selected="${filters['examType'] == '考试'}">考试</option>
-                        <option value="考查" th:selected="${filters['examType'] == '考查'}">考查</option>
+                    课程类型
+                    <select name="courseType">
+                        <option value="">全部类型</option>
+                        <option value="必修" th:selected="${filters['courseType'] == '必修'}">必修</option>
+                        <option value="选修" th:selected="${filters['courseType'] == '选修'}">选修</option>
+                        <option value="通识" th:selected="${filters['courseType'] == '通识'}">通识</option>
                     </select>
                 </label>
                 <label th:if="${pageKey == 'classes'}">

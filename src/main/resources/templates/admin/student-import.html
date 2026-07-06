@@ -15,23 +15,37 @@
             <div>
                 <p class="eyebrow">Student Import</p>
                 <h1>一键导入学生</h1>
-                <p>粘贴学生名单 CSV 内容后提交，字段顺序与“新增学生”保持一致，系统会逐行创建学生账号。</p>
+                <p>上传 Excel 学生名单或粘贴 CSV 内容，系统会批量创建学生信息和登录账号，GPA 与已修学分由成绩自动计算。</p>
             </div>
         </section>
 
         <section class="panel">
-            <h2>CSV 格式</h2>
-            <pre class="code-sample">学号,姓名,性别,年龄,生源地编码,班级编码,手机号,学籍状态,入学日期
-S2023998,测试一,男,20,R-XH,CL-CS2301,13899990001,在读,2023-09-01
-S2023999,测试二,女,19,R-BL,CL-CS2302,13899990002,在读,2023-09-01</pre>
+            <h2>Excel / CSV 字段顺序</h2>
+            <pre class="code-sample">学号,姓名,性别,年龄,班级,生源地,手机号,学籍状态,入学日期
+S2023998,测试一,男,20,计科2301,西湖区,13899990001,在读,2023-09-01
+S2023999,测试二,女,19,软工2301,杭州市,13899990002,在读,2023-09-01</pre>
         </section>
 
-        <form class="form-grid import-form" method="post" action="/admin/students/import">
-            <label class="wide">导入内容
-                <textarea name="importText" required spellcheck="false" placeholder="粘贴 CSV 内容，第一行可以是表头"></textarea>
-            </label>
-            <button type="submit">导入学生</button>
-            <a class="button secondary" href="/admin/students">返回学生列表</a>
+        <form class="form-card import-form" method="post" action="/admin/students/import" enctype="multipart/form-data" data-confirm="确认导入学生名单吗？系统会逐行创建学生信息和默认登录账号。">
+            <section class="form-section">
+                <h2>上传 Excel</h2>
+                <div class="form-grid">
+                    <label>学生名单文件
+                        <input name="studentFile" type="file" accept=".xlsx,.xls">
+                    </label>
+                    <div class="field-note"><strong>推荐使用 Excel 导入</strong><span>第一行可以是表头，字段顺序按上方示例排列。</span></div>
+                </div>
+            </section>
+            <section class="form-section">
+                <h2>或粘贴 CSV</h2>
+                <label class="wide">导入内容
+                    <textarea name="importText" spellcheck="false" placeholder="未上传 Excel 时，可在这里粘贴 CSV 内容"></textarea>
+                </label>
+            </section>
+            <div class="form-actions">
+                <button type="submit">导入学生</button>
+                <a class="button secondary" href="/admin/students">返回学生列表</a>
+            </div>
         </form>
     </main>
 </div>

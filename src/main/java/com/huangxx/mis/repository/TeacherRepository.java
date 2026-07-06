@@ -18,29 +18,37 @@ public class TeacherRepository {
 
     public List<Map<String, Object>> tasks(String teacherId) {
         return jdbcTemplate.queryForList("""
-                SELECT hxx_task_id11 AS taskId,
-                       hxx_course_name11 AS 课程名称,
-                       hxx_class_name11 AS 班级,
-                       hxx_school_year11 || ' ' || hxx_semester11 AS 学期,
-                       hxx_teaching_place11 AS 上课地点,
-                       hxx_current_count11 || '/' || hxx_max_count11 AS 选课人数,
-                       CASE WHEN hxx_score_publish_flag11 = 'Y' THEN '已发布' ELSE '未发布' END AS 成绩发布状态
-                  FROM Huangxx_ViewTeacherTask11
-                 WHERE hxx_teacher_id11 = ?
-                 ORDER BY hxx_school_year11 DESC, hxx_semester11, hxx_course_name11
+                SELECT task.hxx_task_id11 AS taskId,
+                       task.hxx_course_name11 AS 课程名称,
+                       task.hxx_class_name11 AS 班级,
+                       task.hxx_school_year11 || ' ' || task.hxx_semester11 AS 学期,
+                       task.hxx_teaching_place11 AS 上课地点,
+                       (SELECT count(*)
+                          FROM Huangxx_CourseSelection11 sel
+                         WHERE sel.hxx_task_id11 = task.hxx_task_id11
+                           AND sel.hxx_selection_status11 <> '退选') || '/' || task.hxx_max_count11 AS 选课人数,
+                       task.hxx_task_status11 AS 任务状态,
+                       CASE WHEN task.hxx_score_publish_flag11 = 'Y' THEN '已发布' ELSE '未发布' END AS 成绩发布状态
+                  FROM Huangxx_ViewTeacherTask11 task
+                 WHERE task.hxx_teacher_id11 = ?
+                 ORDER BY task.hxx_school_year11 DESC, task.hxx_semester11, task.hxx_course_name11
                 """, teacherId);
     }
 
     public Map<String, Object> task(String taskId, String teacherId) {
         return jdbcTemplate.queryForMap("""
-                SELECT hxx_course_name11 AS 课程名称,
-                       hxx_class_name11 AS 班级,
-                       hxx_school_year11 || ' ' || hxx_semester11 AS 学期,
-                       hxx_teaching_place11 AS 上课地点,
-                       hxx_current_count11 || '/' || hxx_max_count11 AS 选课人数,
-                       CASE WHEN hxx_score_publish_flag11 = 'Y' THEN '已发布' ELSE '未发布' END AS 成绩发布状态
-                  FROM Huangxx_ViewTeacherTask11
-                 WHERE hxx_task_id11 = ? AND hxx_teacher_id11 = ?
+                SELECT task.hxx_course_name11 AS 课程名称,
+                       task.hxx_class_name11 AS 班级,
+                       task.hxx_school_year11 || ' ' || task.hxx_semester11 AS 学期,
+                       task.hxx_teaching_place11 AS 上课地点,
+                       (SELECT count(*)
+                          FROM Huangxx_CourseSelection11 sel
+                         WHERE sel.hxx_task_id11 = task.hxx_task_id11
+                           AND sel.hxx_selection_status11 <> '退选') || '/' || task.hxx_max_count11 AS 选课人数,
+                       task.hxx_task_status11 AS 任务状态,
+                       CASE WHEN task.hxx_score_publish_flag11 = 'Y' THEN '已发布' ELSE '未发布' END AS 成绩发布状态
+                  FROM Huangxx_ViewTeacherTask11 task
+                 WHERE task.hxx_task_id11 = ? AND task.hxx_teacher_id11 = ?
                 """, taskId, teacherId);
     }
 
@@ -49,6 +57,42 @@ public class TeacherRepository {
                 SELECT count(*) FROM Huangxx_TeachingTask11
                  WHERE hxx_task_id11 = ? AND hxx_teacher_id11 = ?
                 """, Integer.class, taskId, teacherId);
+        return count != null && count > 0;
+    }
+
+    public boolean taskEnded(String taskId, String teacherId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*) FROM Huangxx_TeachingTask11
+                 WHERE hxx_task_id11 = ?
+                   AND hxx_teacher_id11 = ?
+                   AND hxx_task_status11 = '已结束'
+                """, Integer.class, taskId, teacherId);
+        return count != null && count > 0;
+    }
+
+    public boolean selectionCanReceiveScore(String selectionId, String teacherId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*)
+                  FROM Huangxx_CourseSelection11 sel
+                  JOIN Huangxx_TeachingTask11 task ON task.hxx_task_id11 = sel.hxx_task_id11
+                 WHERE sel.hxx_selection_id11 = ?
+                   AND task.hxx_teacher_id11 = ?
+                   AND task.hxx_task_status11 = '已结束'
+                   AND sel.hxx_selection_status11 <> '退选'
+                """, Integer.class, selectionId, teacherId);
+        return count != null && count > 0;
+    }
+
+    public boolean scoreCanBeEdited(String scoreId, String teacherId) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT count(*)
+                  FROM Huangxx_Score11 sc
+                  JOIN Huangxx_CourseSelection11 sel ON sel.hxx_selection_id11 = sc.hxx_selection_id11
+                  JOIN Huangxx_TeachingTask11 task ON task.hxx_task_id11 = sel.hxx_task_id11
+                 WHERE sc.hxx_score_id11 = ?
+                   AND task.hxx_teacher_id11 = ?
+                   AND task.hxx_task_status11 = '已结束'
+                """, Integer.class, scoreId, teacherId);
         return count != null && count > 0;
     }
 
@@ -81,6 +125,7 @@ public class TeacherRepository {
                   LEFT JOIN Huangxx_Score11 sc ON sc.hxx_selection_id11 = sel.hxx_selection_id11
                  WHERE sel.hxx_task_id11 = ?
                    AND task.hxx_teacher_id11 = ?
+                   AND sel.hxx_selection_status11 <> '退选'
                  ORDER BY stu.hxx_student_id11
                 """, taskId, teacherId);
     }
@@ -117,6 +162,12 @@ public class TeacherRepository {
                 (hxx_score_id11, hxx_selection_id11, hxx_usual_score11, hxx_exam_score11, hxx_input_teacher11)
                 VALUES (?, ?, ?, ?, ?)
                 """, scoreId, selectionId, usualScore, examScore, teacherId);
+        jdbcTemplate.update("""
+                UPDATE Huangxx_CourseSelection11
+                   SET hxx_selection_status11 = '完成'
+                 WHERE hxx_selection_id11 = ?
+                   AND hxx_selection_status11 = '已选'
+                """, selectionId);
     }
 
     public void editScore(String scoreId, BigDecimal usualScore, BigDecimal examScore, String teacherId, String reason) {

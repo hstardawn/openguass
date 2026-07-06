@@ -26,7 +26,8 @@
         <h2>学籍信息</h2>
         <div class="form-grid">
             <label class="required">生源地<select name="regionId" required><option th:each="o:${options.regions}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_region_id11']}"></option></select></label>
-            <label class="required">班级<select name="classId" required><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_class_id11']}"></option></select></label>
+            <label>专业<select data-class-filter><option value="">全部专业</option><option th:each="o:${options.majors}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_major_id11']}"></option></select></label>
+            <label class="required">班级<select name="classId" required data-class-select><option value="">请选择班级</option><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}" th:attr="data-major=${o.majorId}" th:selected="${o.id == row['hxx_class_id11']}"></option></select></label>
             <label>已修学分<input name="totalCredit" type="number" min="0" step="0.5" th:value="${row['hxx_total_credit11'] ?: 0}" placeholder="0"></label>
             <label>当前绩点<input name="gpa" type="number" min="0" max="5" step="0.01" th:value="${row['hxx_gpa11'] ?: 0}" placeholder="0.00"></label>
             <label>学籍状态<select name="status"><option th:selected="${row['hxx_status11'] == '在读'}">在读</option><option th:selected="${row['hxx_status11'] == '休学'}">休学</option><option th:selected="${row['hxx_status11'] == '毕业'}">毕业</option><option th:selected="${row['hxx_status11'] == '退学'}">退学</option></select></label>

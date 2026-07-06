@@ -15,7 +15,7 @@
     <section class="form-section">
         <h2>课程与教师</h2>
         <div class="form-grid">
-            <label class="required">任务编号<input name="taskId" required th:readonly="${edit}" th:value="${row['hxx_task_id11']}" placeholder="如 TASK011"></label>
+            <input type="hidden" name="taskId" th:if="${edit}" th:value="${row['hxx_task_id11']}">
             <label class="required">课程<select name="courseId" required><option th:each="o:${options.courses}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_course_id11']}"></option></select></label>
             <label class="required">教师<select name="teacherId" required><option th:each="o:${options.teachers}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_teacher_id11']}"></option></select></label>
             <label class="required">班级<select name="classId" required><option th:each="o:${options.classes}" th:value="${o.id}" th:text="${o.name}" th:selected="${o.id == row['hxx_class_id11']}"></option></select></label>
